@@ -1,0 +1,4 @@
+package ru.onlineshop.domain.user.service;
+
+public class UserServiceImpl implements UserService {
+}
