@@ -1,4 +1,4 @@
 package domain.user.entity;
 
-public class Account {
+public class Address {
 }
