@@ -9,8 +9,8 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
     @Override
-    public Optional<User> getUserById(long id) {
-        return Optional.empty();
+    public Optional<User> getUserById(Long id) {
+        return null;
     }
 
     @Override
@@ -29,7 +29,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUser(long id) {
+    public void deleteUser(Long id) {
 
     }
 
