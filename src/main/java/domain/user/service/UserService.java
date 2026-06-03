@@ -2,6 +2,7 @@ package domain.user.service;
 
 import com.sun.tools.javac.util.List;
 import domain.user.entity.User;
+import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
@@ -13,6 +14,10 @@ public interface UserService {
     User createUser(User user);
     void deleteUser(Long id);
     User changePassword(User user);
+    User changeEmail(User user);
+    User changePhone(User user);
+    User changeUsername(User user);
+
 
 
 
