@@ -11,11 +11,11 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class UserServiceImpl implements UserService {
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @Override
     public Optional<User> getUserById(Long id) {
-        return null;
+        return Optional.empty();
     }
 
     @Override
