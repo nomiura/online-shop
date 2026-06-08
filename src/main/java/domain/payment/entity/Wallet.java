@@ -24,4 +24,5 @@ public class Wallet {
     private Account account;
 
     private BigDecimal balance;
+
 }
