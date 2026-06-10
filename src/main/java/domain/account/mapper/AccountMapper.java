@@ -1,13 +1,16 @@
 package domain.account.mapper;
 
-import domain.account.dto.AccountResponseDto;
+import domain.account.dto.request.AccountCreateRequest;
+import domain.account.dto.response.AccountResponseDto;
 import domain.account.entity.Account;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AccountMapper {
 
-    public AccountResponseDto accountToAccountDto(Account account) {
+
+
+    public AccountResponseDto accountToResponseDto(Account account) {
         if (account == null) return null;
 
         AccountResponseDto accountDto = new AccountResponseDto();
@@ -17,12 +20,19 @@ public class AccountMapper {
         return  accountDto;
     }
 
-    public Account accountDtoToAccount(AccountResponseDto accountDto) {
-        if (accountDto == null) return null;
+
+    //регистрация dto -> entity
+    public Account accountToEntity(AccountCreateRequest request) {
+        if (request == null) return null;
 
         Account account = new Account();
-        account.setId(accountDto.getId());
-        account.setEmail(accountDto.getEmail());
-        account.setPassword();
+        //account.setId(request.getId());
+        account.setEmail(request.getEmail());
+        account.setPassword(account.getPassword());
+
+        account.setPhone(request.getPhone());
+        account.setCity(request.getCity());
+
+        return account;
     }
 }
