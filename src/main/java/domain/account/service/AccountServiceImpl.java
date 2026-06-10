@@ -1,7 +1,7 @@
 package domain.account.service;
 
 
-import domain.account.dto.AccountResponseDto;
+import domain.account.dto.response.AccountResponseDto;
 import domain.account.entity.Account;
 import domain.account.repository.AccountRepository;
 import org.slf4j.Logger;

@@ -1,23 +1,20 @@
 package domain.account.controller;
 
-import domain.account.dto.AccountRequestDto;
-import domain.account.dto.AccountResponseDto;
+import domain.account.dto.request.AccountCreateRequest;
+import domain.account.dto.request.AccountPatchRequest;
+import domain.account.dto.request.AccountUpdateRequest;
+import domain.account.dto.response.AccountListResponseDto;
+import domain.account.dto.response.AccountResponseDto;
 import domain.account.entity.Account;
 import domain.account.mapper.AccountMapper;
 import domain.account.service.*;
-import domain.account.service.AccountServiceImpl;
 import jakarta.validation.Valid;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-
-import static org.springframework.http.HttpStatus.CONFLICT;
-import static org.springframework.http.HttpStatus.FORBIDDEN;
 
 //HTTP Request (браузер) → Controller → Service → Repository → Database
 //И обратно:
@@ -26,64 +23,81 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 //Контроллер отвечает за:
 //        └── HTTP-слой (вход/выход из приложения)
 //        ├── получение HTTP-запроса
-//        ├── валидация
+//        ├── валидация через @Valid
 //        ├── преобразование
 //        ├── вызов сервиса
 //        └── формирование HTTP-ответа
 //Controller - принимает http-запрос, валидирует входные данные(проверяет, что мыло корректное, к примеру, через @Valid),
 // вызывает нужный метод сервиса, возвращает http-ответ(статус + данные)
+@Slf4j
+@RequiredArgsConstructor
 @RestController
-@RequestMapping("/accounts")
+@RequestMapping("/account")
 public class AccountController {
 
     private final AccountService accountService;
     private final AccountMapper accountMapper;
 
-    public AccountController(AccountServiceImpl accountService, AccountMapper accountMapper) {   //autowired не нужен, тк 1 конструктор
-        this.accountService = accountService;
-        this.accountMapper = accountMapper;
+    @GetMapping("/{id}")
+    public ResponseEntity<AccountResponseDto> getAccountById(
+            @PathVariable Long id) { //подставляет айдишник
+
+        log.info("Request to get user: userId={}", id);
+        AccountResponseDto dto = accountService.getAccountById(id);
+        return ResponseEntity.ok(dto);
     }
 
-    @PostMapping
+//    @GetMapping("/me")
+//    public ResponseEntity<AccountResponseDto> getCurrentAccount() {
+//        log.info("Request to get current account");
+//        Account account =  accountService.getUserById();
+//        return ResponseEntity.ok(accountMapper.accountToResponseDto());
+//    }
+
+
+    @PostMapping("/register")
     public ResponseEntity<AccountResponseDto> createAccount(
-            @Valid  @RequestBody AccountRequestDto accountRequestDto) {
+            @Valid  @RequestBody AccountCreateRequest request) {
         // ВСЕ проверки в DTO + сервисе, здесь НИЧЕГО нет
         //controller получает dto из json
-        //передаем в сервис для бизнес-логики
-        Account createdAccount = accountService.createAccount(accountRequestDto);
+        //передаем в сервис для бизнес-логики??
         //превращаем entity -> responseDto
-        AccountResponseDto response = accountMapper.accountToAccountDto(createdAccount);
 
-        URI location = URI.create("/accounts/" + createdAccount.getId());
+        // 1. Передаём request в сервис, сервис возвращает DTO (не Entity!)
+        AccountResponseDto response = accountService.createAccount(request);
 
+        // 2. ID берём из response (там есть поле id)
+        URI location = URI.create("/account/" + response.getId());
+
+        // 3. Возвращаем 201 Created с location и body
         return ResponseEntity
                 .created(location)
                 .body(response);
     }
 
+    //полное обновление
+    @PutMapping("/{id}")
+    public ResponseEntity<AccountResponseDto> fullUpdateAccount(
+            @PathVariable Long id,
+            @Valid @RequestBody AccountUpdateRequest request) {
+        AccountResponseDto response = accountService.fullUpdateAccount(id,request);
+        return ResponseEntity.ok(response);
+    }
 
-    @PutMapping("/update")
+    //частичное обновление
+    @PatchMapping("/{id}")
     public ResponseEntity<AccountResponseDto> updateAccount(
-            AccountRequestDto accountRequestDto) {
+            @PathVariable Long id,
+            @Valid @RequestBody AccountPatchRequest request) {
 
-
-
-
+        AccountResponseDto response = accountService.updateAccount(id, request);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/accounts/{id}")
-    public ResponseEntity<AccountResponseDto> getAccount(
-            @PathVariable Long id, //подставляет айдишник
-            //@AuthenticationPrincipal or @PreAuthorize
-            Account currentAccount) {
-
-        return ResponseEntity.ok(accountService.getAccount(id));
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteAccountById(@PathVariable Long id) {
+        accountService.deleteAccountById(id);
+        return  ResponseEntity.noContent().build();
     }
-
-
-
-
-    @DeleteMapping("/delete")
-
 
 }

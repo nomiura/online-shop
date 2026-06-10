@@ -1,9 +1,10 @@
-package domain.account.dto;
+package domain.account.dto.response;
 
 
 import lombok.*;
 
-@Data
+
+//отдаем пользователю
 @Getter
 @Setter
 @NoArgsConstructor
