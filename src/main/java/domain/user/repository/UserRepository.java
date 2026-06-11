@@ -1,13 +1,11 @@
 package domain.user.repository;
 
+import domain.user.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import ru.onlineshop.domain.user.entity.User;
+import java.util.Optional;
 
-public interface UserRepository {
-
-    User persist(User user);
-    User findById(long id);
-    User findByPhone(int phone);
-    User findByEmail(String email);
-    User findAll();
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
 }

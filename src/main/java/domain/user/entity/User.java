@@ -3,6 +3,7 @@ package domain.user.entity;
 
 import domain.account.entity.Account;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.annotation.Scope;
@@ -15,6 +16,7 @@ import java.time.LocalDate;
 @Entity
 public class User {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
