@@ -1,4 +1,4 @@
-package domain.cart.entity;
+package domain.cart;
 
 import domain.product.entity.Product;
 import jakarta.persistence.*;

@@ -50,14 +50,18 @@ public class AccountController {
 //    @GetMapping("/me")
 //    public ResponseEntity<AccountResponseDto> getCurrentAccount() {
 //        log.info("Request to get current account");
-//        Account account =  accountService.getUserById();
-//        return ResponseEntity.ok(accountMapper.accountToResponseDto());
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String currentUserEmail = authentication.getName();
+//
+//        // Ищем пользователя по email
+//        AccountResponseDto response = accountService.getAccountByEmail(currentUserEmail);
+//        return ResponseEntity.ok(response);
 //    }
 
 
     @PostMapping("/register")
     public ResponseEntity<AccountResponseDto> createAccount(
-            @Valid  @RequestBody AccountCreateRequest request) {
+            @Valid  @RequestBody AccountCreateRequest request) { //@RequestBody Jackson превращает из json в класс
         // ВСЕ проверки в DTO + сервисе, здесь НИЧЕГО нет
         //controller получает dto из json
         //передаем в сервис для бизнес-логики??
@@ -99,5 +103,4 @@ public class AccountController {
         accountService.deleteAccountById(id);
         return  ResponseEntity.noContent().build();
     }
-
 }

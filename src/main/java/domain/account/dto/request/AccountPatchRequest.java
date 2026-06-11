@@ -3,7 +3,9 @@ package domain.account.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
+import lombok.Data;
 
+@Data
 public class AccountPatchRequest {
     @Email(message = "Неправильный формат почты")  // НЕТ @NotBlank!
     private String email;  // опционально (если null - не трогаем)
