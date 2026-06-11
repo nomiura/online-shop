@@ -1,7 +1,7 @@
 package domain.account.entity;
 
 
-import domain.cart.entity.Cart;
+import domain.cart.Cart;
 import domain.payment.entity.Wallet;
 import domain.user.entity.Address;
 import domain.user.entity.User;
