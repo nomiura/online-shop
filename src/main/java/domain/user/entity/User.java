@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Scope;
 
 import java.time.LocalDate;
 
-@Scope("prototype")
+
 @Getter
 @Setter
 @Entity
@@ -22,6 +22,7 @@ public class User {
     private String name;
     private int phone;
     private LocalDate birthday;
+    private Sex sex;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Account account;
