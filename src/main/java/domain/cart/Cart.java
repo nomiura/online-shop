@@ -1,7 +1,7 @@
 package domain.cart;
 
 
-import domain.account.entity.Account;
+import domain.entity.Account;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
