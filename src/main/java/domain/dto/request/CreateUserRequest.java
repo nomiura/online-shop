@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -14,10 +15,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class CreateUserRequest {
         private String username;
-        private String phone;
-        private String email;
-        private String password;
         private LocalDate birthday;
         private Sex sex;
-        private String address;
+        private List<String> addresses;
 }

@@ -1,4 +1,4 @@
-package domain.cart;
+package domain.controller;
 
 public class CartController
 {

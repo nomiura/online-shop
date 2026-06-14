@@ -1,4 +1,4 @@
-package domain.cart;
+package domain.repository;
 
 public class CartItemRepository {
 }
