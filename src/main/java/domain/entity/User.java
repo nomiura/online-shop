@@ -1,0 +1,39 @@
+package domain.entity;
+
+
+import java.util.List;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+
+
+@Getter
+@Setter
+@Entity
+@Table(name = "users")
+@AllArgsConstructor
+@NoArgsConstructor
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private LocalDate birthday;
+    private Sex sex;
+    //пароль не нужен - относится к Account
+
+    @ElementCollection
+    private List<String> addresses;
+    @Column(nullable = false)
+    private String username;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Account> accounts = new ArrayList<>();
+
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    private List<Order> orders = new ArrayList<>();
+}
