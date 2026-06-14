@@ -18,15 +18,16 @@ import java.util.List;
 @NoArgsConstructor
 public class UpdateUserRequest {
 
-    @NotBlank(message = "Имя не может быть пустым.")
+
     private String username;
 
-    @NotNull(message = "Дата рождения обязательна")
+
     @Past(message = "Дата рождения должна быть в прошлом")
     private LocalDate birthday;
 
-    @NotNull(message = "Пол обязателен")
+
     private Sex sex;
+
     private List<String> addresses;
 
 }

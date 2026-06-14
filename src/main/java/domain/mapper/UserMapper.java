@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 public class UserMapper {
 
     public User toEntity(CreateUserRequest request) {
+        if (request == null) return null;
         User user = new User();
         user.setUsername(request.getUsername());
         user.setBirthday(request.getBirthday());
@@ -18,6 +19,7 @@ public class UserMapper {
     }
 
     public UserResponse toResponse(User user) {
+        if (user == null) return null;
         return new UserResponse(
                 user.getId(),
                 user.getUsername(),

@@ -11,6 +11,8 @@ import domain.exception.AccountNotFoundException;
 import domain.exception.EmailAlreadyExistsException;
 import domain.mapper.AccountMapper;
 import domain.repository.AccountRepository;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;

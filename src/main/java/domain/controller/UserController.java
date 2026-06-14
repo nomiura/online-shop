@@ -9,12 +9,13 @@ import domain.mapper.UserMapper;
 import domain.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RequestMapping("/users")
 public class UserController {
     private final UserService userService;
@@ -35,11 +36,18 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
+
         User user = userService.updateUser(id, request);
-        return  ResponseEntity.ok(userMapper.toResponse(user));
+        return ResponseEntity.ok(userMapper.toResponse(user));
     }
+
+//    @PutMapping("/{id}")
+//    public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
+//        User user = userService.updateUser(id, request);
+//        return  ResponseEntity.ok(userMapper.toResponse(user));
+//    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id){
