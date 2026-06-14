@@ -1,4 +1,4 @@
-package domain.cart.dto;
+package domain.dto.request;
 
 public class UpdateQuantityRequest {
 }

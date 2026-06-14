@@ -11,12 +11,9 @@ public class UserMapper {
     public User toEntity(CreateUserRequest request) {
         User user = new User();
         user.setUsername(request.getUsername());
-        user.setPhone(request.getPhone());
-        user.setEmail(request.getEmail());
-        user.setPassword(request.getPassword());
         user.setBirthday(request.getBirthday());
         user.setSex(request.getSex());
-        user.setAddress(request.getAddress());
+        user.setAddresses(request.getAddresses());
         return user;
     }
 
@@ -24,11 +21,9 @@ public class UserMapper {
         return new UserResponse(
                 user.getId(),
                 user.getUsername(),
-                user.getPhone(),
-                user.getEmail(),
                 user.getBirthday(),
                 user.getSex(),
-                user.getAddress()
+                user.getAddresses()
         );
     }
 }

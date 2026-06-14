@@ -1,7 +1,9 @@
 package domain.controller;
 
 import domain.dto.request.CreateUserRequest;
+import domain.dto.request.UpdateUserRequest;
 import domain.dto.response.UserResponse;
+import domain.entity.User;
 import domain.exception.UserNotFoundException;
 import domain.mapper.UserMapper;
 import domain.service.UserService;
@@ -28,8 +30,21 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
-        UserResponse response = userService.createUser(request);
+        User user = userService.createUser(request);
+        UserResponse response = userMapper.toResponse(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
+        User user = userService.updateUser(id, request);
+        return  ResponseEntity.ok(userMapper.toResponse(user));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id){
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 
 

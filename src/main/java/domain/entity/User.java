@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 
@@ -23,17 +22,18 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String phone;
     private LocalDate birthday;
     private Sex sex;
-    private String password;
-    private String email;
-    private String address;
+    //пароль не нужен - относится к Account
 
+    @ElementCollection
+    private List<String> addresses;
     @Column(nullable = false)
     private String username;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Order> orders = new ArrayList<>();
+    private List<Account> accounts = new ArrayList<>();
+
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    private List<Order> orders = new ArrayList<>();
 }

@@ -1,10 +1,10 @@
 package domain.service;
 
-import java.util.List;
-
+import domain.dto.request.CreateUserRequest;
 import domain.dto.request.UpdateUserRequest;
 import domain.entity.User;
 import domain.exception.UserNotFoundException;
+import domain.mapper.UserMapper;
 import domain.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,31 +15,36 @@ import java.util.Optional;
 @AllArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Override
     public Optional<User> getUserById(Long id) {
         return userRepository.findById(id);
     }
 
-    @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
+//    @Override
+//    public List<User> getAllUsers() {
+//        return userRepository.findAll();
+//    }
 
     @Override
     public User updateUser(Long id, UpdateUserRequest request) {
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
-        user.setPhone(request.getPhone());
         user.setBirthday(request.getBirthday());
-        return userRepository.save(user);
+        user.setSex(request.getSex());
+        user.setAddresses(request.getAddresses());
+        User updatedUser = userRepository.save(user);
+        System.out.println("Пользователь успешно обновлён");
+        return updatedUser;
     }
 
     @Override
-    public User createUser(User user) {
-
-        return userRepository.save(user);
+    public User createUser(CreateUserRequest request) {
+        User user = userMapper.toEntity(request);
+        User createdUser = userRepository.save(user);
+        System.out.println("Пользователь успешно создан.");
+        return createdUser;
     }
 
     @Override
@@ -48,10 +53,5 @@ public class UserServiceImpl implements UserService {
         System.out.println("Пользователь успешно удален.");
     }
 
-    @Override
-    public User changePassword(User user) {
-
-        return userRepository.getReferenceById(user.getId());
-    }
 
 }

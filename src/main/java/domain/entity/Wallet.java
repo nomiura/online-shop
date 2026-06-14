@@ -1,6 +1,5 @@
-package domain.payment.entity;
+package domain.entity;
 
-import domain.entity.Account;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -1,4 +1,4 @@
-package domain.cart;
+package domain.service;
 
 public class CartService {
 }

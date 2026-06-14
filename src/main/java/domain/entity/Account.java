@@ -1,8 +1,6 @@
 package domain.entity;
 
 
-import domain.cart.Cart;
-import domain.payment.entity.Wallet;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
