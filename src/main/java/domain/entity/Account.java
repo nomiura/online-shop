@@ -14,7 +14,7 @@ import java.util.List;
 @Setter
 @Getter
 @NoArgsConstructor
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 @Entity
 @Table(name = "accounts")
 public class Account {

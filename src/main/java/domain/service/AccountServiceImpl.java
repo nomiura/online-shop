@@ -31,15 +31,53 @@ public class AccountServiceImpl implements AccountService {
     private final AccountMapper accountMapper;
     private final PasswordEncoder passwordEncoder;
 
+
+    @Transactional(readOnly = true)
+    @Override
+    public AccountResponseDto getAccountById(Long id) {
+        log.info("Getting account with id: {}", id + "...");
+
+        Account account = accountRepository.findById(id).orElseThrow(() -> new AccountNotFoundException("Account not found by id: " + id));
+
+        log.info("Account is found with id: {}", id);
+        return accountMapper.accountToResponseDto(account);
+    }
+
     @Transactional
     @Override
     public AccountResponseDto createAccount(AccountCreateRequest accountCreateRequest) {
         log.info("Creating account...");
 
+        if (accountRepository.findByEmail(accountCreateRequest.getEmail()).isPresent()) {
+            throw new EmailAlreadyExistsException("Email already exists: " + accountCreateRequest.getEmail());
+        }
+
         Account account = accountMapper.accountToEntity(accountCreateRequest);
         accountRepository.save(account);
 
         log.info("Account is created");
+        return accountMapper.accountToResponseDto(account);
+    }
+
+    @Transactional
+    @Override
+    public AccountResponseDto fullUpdateAccount(Long id, AccountUpdateRequest request) {
+        log.info("Fully updating account with id: {}", id + "...");
+
+        Account account = accountRepository.findById(id).orElseThrow(() -> new AccountNotFoundException("Account not found by id: " + id));
+
+        //проверка на уникальность мыла
+        if (accountRepository.existsByEmail(request.getEmail())) {
+            throw new EmailAlreadyExistsException("Email already exists: "  + request.getEmail());
+        }
+
+        account.setEmail(request.getEmail());
+        account.setPassword(passwordEncoder.encode(request.getPassword()));
+        account.setPhone(request.getPhone());
+        account.setCity(request.getCity());
+
+        accountRepository.save(account);
+
         return accountMapper.accountToResponseDto(account);
     }
 
@@ -78,27 +116,7 @@ public class AccountServiceImpl implements AccountService {
         log.info("Account is updated with id: {}", id);
         return accountMapper.accountToResponseDto(updatedAccount);
     }
-    @Transactional
-    @Override
-    public AccountResponseDto fullUpdateAccount(Long id, AccountUpdateRequest request) {
-        log.info("Fully updating account with id: {}", id + "...");
 
-        Account updatedAccount = accountRepository.findById(id).orElseThrow(() -> new AccountNotFoundException("Account not found by id: " + id));
-
-        //проверка на уникальность мыла
-        if (accountRepository.existsByEmail(request.getEmail())) {
-            throw new EmailAlreadyExistsException("Email already exists: "  + request.getEmail());
-        }
-
-        updatedAccount.setEmail(request.getEmail());
-        updatedAccount.setPassword(passwordEncoder.encode(request.getPassword()));
-        updatedAccount.setPhone(request.getPhone());
-        updatedAccount.setCity(request.getCity());
-
-        accountRepository.save(updatedAccount);
-
-        return accountMapper.accountToResponseDto(updatedAccount);
-    }
 
     @Transactional
     @Override
@@ -110,14 +128,4 @@ public class AccountServiceImpl implements AccountService {
         log.info("Account is deleted with id: {}", id);
     }
 
-    @Transactional(readOnly = true)
-    @Override
-    public AccountResponseDto getAccountById(Long id) {
-        log.info("Getting account with id: {}", id + "...");
-
-        Account account = accountRepository.findById(id).orElseThrow(() -> new AccountNotFoundException("Account not found by id: " + id));
-
-        log.info("Account is found with id: {}", id);
-        return accountMapper.accountToResponseDto(account);
-    }
 }

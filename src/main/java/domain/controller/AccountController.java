@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.security.auth.login.AccountNotFoundException;
 import java.net.URI;
 
 //HTTP Request (браузер) → Controller → Service → Repository → Database
@@ -37,8 +38,8 @@ public class AccountController {
     private final AccountMapper accountMapper;
 
     @GetMapping("/{id}")
-    public ResponseEntity<AccountResponseDto> getAccountById(
-            @PathVariable Long id) { //подставляет айдишник
+    public ResponseEntity<AccountResponseDto> getAccountById (
+            @PathVariable Long id) throws AccountNotFoundException { //подставляет айдишник
 
         log.info("Request to get user: userId={}", id);
         AccountResponseDto dto = accountService.getAccountById(id);
@@ -69,7 +70,7 @@ public class AccountController {
         AccountResponseDto response = accountService.createAccount(request);
 
         // 2. ID берём из response (там есть поле id)
-        URI location = URI.create("/account/" + response.getId());
+        URI location = URI.create("/account" + response.getId());
 
         // 3. Возвращаем 201 Created с location и body
         return ResponseEntity
@@ -97,7 +98,7 @@ public class AccountController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAccountById(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteAccountById(@PathVariable Long id) throws  AccountNotFoundException {
         accountService.deleteAccountById(id);
         return  ResponseEntity.noContent().build();
     }
