@@ -8,6 +8,7 @@ import lombok.*;
 
 //реквест для пользователя
 @Data
+@AllArgsConstructor
 public class AccountUpdateRequest { // тут нужны валидации
     @Email(message = "Почта не должна быть пустой")
     @NotBlank(message = "Почта должна быть корректной")
