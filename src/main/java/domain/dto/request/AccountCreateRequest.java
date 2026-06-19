@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
+@AllArgsConstructor
 public class AccountCreateRequest {
 
     @NotBlank(message = "Почта не должна быть пустой")
