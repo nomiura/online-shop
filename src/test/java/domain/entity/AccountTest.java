@@ -1,4 +1,4 @@
-package test.domain.entity;
+package domain.entity;
 
 public class AccountTest {
 }

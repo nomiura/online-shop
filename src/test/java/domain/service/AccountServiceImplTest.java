@@ -1,4 +1,4 @@
-package test.domain.service;
+package domain.service;
 
 import domain.OnlineShopApplication;
 import domain.dto.request.AccountCreateRequest;
@@ -10,7 +10,6 @@ import domain.exception.DataAccessException;
 import domain.exception.EmailAlreadyExistsException;
 import domain.mapper.AccountMapper;
 import domain.repository.AccountRepository;
-import domain.service.AccountServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

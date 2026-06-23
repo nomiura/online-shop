@@ -7,12 +7,14 @@ import domain.dto.response.AccountResponseDto;
 import domain.mapper.AccountMapper;
 import domain.service.AccountService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import domain.exception.*;
 
-import javax.security.auth.login.AccountNotFoundException;
 import java.net.URI;
 
 //HTTP Request (браузер) → Controller → Service → Repository → Database
@@ -31,6 +33,7 @@ import java.net.URI;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
+@Validated
 @RequestMapping("/account")
 public class AccountController {
 
@@ -39,7 +42,7 @@ public class AccountController {
 
     @GetMapping("/{id}")
     public ResponseEntity<AccountResponseDto> getAccountById (
-            @PathVariable Long id) throws AccountNotFoundException { //подставляет айдишник
+            @PathVariable @Min(1) Long id) throws AccountNotFoundException { //подставляет айдишник
 
         log.info("Request to get user: userId={}", id);
         AccountResponseDto dto = accountService.getAccountById(id);
@@ -66,12 +69,18 @@ public class AccountController {
         //передаем в сервис для бизнес-логики??
         //превращаем entity -> responseDto
 
+        log.info("=== CONTROLLER: Received request to create account ===");
+        log.info("Email: {}", request.getEmail());
+        log.info("Phone: {}", request.getPhone());
+        log.info("City: {}", request.getCity());
+        log.info("Password length: {}", request.getPassword().length());
+
         // 1. Передаём request в сервис, сервис возвращает DTO (не Entity!)
         AccountResponseDto response = accountService.createAccount(request);
 
         // 2. ID берём из response (там есть поле id)
         URI location = URI.create("/account" + response.getId());
-
+        log.info("=== CONTROLLER: Account created with ID: {} ===", response.getId());
         // 3. Возвращаем 201 Created с location и body
         return ResponseEntity
                 .created(location)

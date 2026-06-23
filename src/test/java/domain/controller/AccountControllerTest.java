@@ -1,4 +1,4 @@
-package test.domain.controller;
+package domain.controller;
 
 import domain.OnlineShopApplication;
 import domain.controller.AccountController;
@@ -9,6 +9,7 @@ import domain.dto.response.AccountResponseDto;
 import domain.exception.AccountNotFoundException;
 import domain.mapper.AccountMapper;
 import domain.service.AccountServiceImpl;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,6 +18,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.Mockito.*;
@@ -25,7 +27,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AccountController.class)
-@Import({AccountController.class, AccountServiceImpl.class, AccountMapper.class})
 class AccountControllerTest { //public не нужен, он по дефолту генерит этот модификатор
 
     @Autowired
@@ -61,6 +62,7 @@ class AccountControllerTest { //public не нужен, он по дефолту
     }
 
     @Test
+    @DisplayName("Должен возвращать Not Found, когда аккаунта не существует")
     void getAccountById_ShouldReturnNotFound_WhenAccountDoesNotExist() throws Exception {
         Long id = 999L;
 
@@ -74,7 +76,7 @@ class AccountControllerTest { //public не нужен, он по дефолту
     }
 
     @Test
-    void getAccountById_ShouldReturnBadRequest_WhenIdIsInvalid() throws Exception {
+    void getAccountById_ShouldReturnBadRequest_WhenIdIsInvalid() throws MethodArgumentNotValidException, Exception {
         Long id = -1L;
 
         mockMvc.perform(get("/account/{id}",id))
@@ -195,7 +197,10 @@ class AccountControllerTest { //public не нужен, он по дефолту
 
         when(accountService.fullUpdateAccount(id,request)).thenThrow(new AccountNotFoundException("Account not found with id: " + id));
 
-        mockMvc.perform(put("/account/{id}",id))
+        String requestJson = objectMapper.writeValueAsString(request);
+        mockMvc.perform(put("/account/{id}",id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
                 .andExpect(status().isNotFound())
                 .andExpect( jsonPath("$.message").value("Account not found with id: 999"));
 
