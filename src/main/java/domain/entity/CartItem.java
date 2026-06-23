@@ -20,7 +20,7 @@ public class CartItem {
 
     @ManyToOne
     @JoinColumn(name = "cart_id")
-    private Cart cart; // ← вот оно//удалить после теста
+    private Cart cart;
 
     @ManyToOne(cascade = CascadeType.ALL)
     private Product product;
