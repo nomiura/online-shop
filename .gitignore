@@ -10,10 +10,10 @@ target/
 *.iml
 *.ipr
 
-application.properties
-docker-compose.yml
+
 init.sql
-src/main/resources/application.properties
+.env
+
 
 
 ### Eclipse ###
