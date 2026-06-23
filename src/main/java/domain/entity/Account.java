@@ -49,8 +49,4 @@ public class Account {
     private Long ordersCount = 0L;
 
     private LocalDateTime createdDate;
-
-
-
-
 }

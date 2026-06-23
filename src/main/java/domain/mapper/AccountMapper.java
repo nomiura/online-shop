@@ -28,7 +28,7 @@ public class AccountMapper {
         Account account = new Account();
         //account.setId(request.getId());
         account.setEmail(request.getEmail());
-        account.setPassword(account.getPassword());
+        account.setPassword(request.getPassword());
 
         account.setPhone(request.getPhone());
         account.setCity(request.getCity());

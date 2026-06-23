@@ -53,6 +53,7 @@ public class AccountServiceImpl implements AccountService {
         }
 
         Account account = accountMapper.accountToEntity(accountCreateRequest);
+        account.setPassword(passwordEncoder.encode(accountCreateRequest.getPassword()));
         accountRepository.save(account);
 
         log.info("Account is created");
