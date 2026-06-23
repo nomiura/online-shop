@@ -1,5 +1,6 @@
-package ru.test.domain.controller;
+package test.domain.controller;
 
+import domain.OnlineShopApplication;
 import domain.controller.AccountController;
 import domain.dto.request.AccountCreateRequest;
 import domain.dto.request.AccountPatchRequest;
@@ -10,7 +11,9 @@ import domain.mapper.AccountMapper;
 import domain.service.AccountServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,8 +24,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 @WebMvcTest(AccountController.class)
+@Import({AccountController.class, AccountServiceImpl.class, AccountMapper.class})
 class AccountControllerTest { //public не нужен, он по дефолту генерит этот модификатор
 
     @Autowired

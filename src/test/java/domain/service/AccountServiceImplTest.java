@@ -1,9 +1,11 @@
-package ru.test.domain.service;
+package test.domain.service;
 
+import domain.OnlineShopApplication;
 import domain.dto.request.AccountCreateRequest;
 import domain.dto.request.AccountUpdateRequest;
 import domain.dto.response.AccountResponseDto;
 import domain.entity.Account;
+import domain.exception.AccountNotFoundException;
 import domain.exception.DataAccessException;
 import domain.exception.EmailAlreadyExistsException;
 import domain.mapper.AccountMapper;
@@ -15,9 +17,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import javax.security.auth.login.AccountNotFoundException;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@SpringBootTest(classes = OnlineShopApplication.class)
 class AccountServiceImplTest {
     //Mock`создает подделку,@InjectMocks создает реальный объект
     //https://www.youtube.com/watch?v=EODRGCrZu5A
