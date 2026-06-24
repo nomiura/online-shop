@@ -11,6 +11,9 @@ target/
 *.ipr
 
 
+.postman/
+.postman-secrets.json
+
 init.sql
 .env
 
