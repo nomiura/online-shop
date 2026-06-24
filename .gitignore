@@ -10,10 +10,13 @@ target/
 *.iml
 *.ipr
 
-application.properties
-docker-compose.yml
+
+.postman/
+.postman-secrets.json
+
 init.sql
-src/main/resources/application.properties
+.env
+
 
 
 ### Eclipse ###
