@@ -35,18 +35,31 @@ public class Account {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "account_id") //внешний ключ в таблице address
-//    @ElementCollection(fetch = FetchType.EAGER)
-//    @CollectionTable(name = "account_addresses",
-//            joinColumns = @JoinColumn(name = "account_id"))
     private List<Address> addresses;
 
+    @Column(nullable = false, unique = true)
     private String email; // уникальный
+
+    @Column(nullable = false, unique = true)
     private String phone; // уникальный
+
+    @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
     private String city;
 
     private Long ordersCount = 0L;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "varchar(255) default 'INDIVIDUAL'")
+    private AccountType accountType;
+
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdDate;
+
+    @PrePersist
+    public void onCreate() {
+        createdDate = LocalDateTime.now();
+    }
 }

@@ -1,6 +1,6 @@
 package domain.entity;
 
-public enum RoleType {
+public enum AccountType {
     INDIVIDUAL, // физ. лицо
     BUSINESS
 }
