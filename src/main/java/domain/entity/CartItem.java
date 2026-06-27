@@ -26,7 +26,7 @@ public class CartItem {
     private Product product;
     private Integer quantity;
     private String comment; // комментарии пользователей, к примеру, "подарочная упаковка"
-    //я считаю коммент нужен к заказу, а не к корзине
+
     private BigDecimal priceAtAdd; // на момент добавления в корзину, чтобы не менялась после изменения цены товара
     private LocalDateTime addedTime;
 
