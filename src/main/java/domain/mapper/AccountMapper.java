@@ -23,15 +23,15 @@ public class AccountMapper {
 
     //регистрация dto -> entity
     public Account accountToEntity(AccountCreateRequest request) {
-        if (request == null) return null;
+         if (request == null) return null;
 
         Account account = new Account();
-        //account.setId(request.getId());
         account.setEmail(request.getEmail());
-        account.setPassword(request.getPassword());
+       // account.setPassword(request.getPassword());
 
         account.setPhone(request.getPhone());
         account.setCity(request.getCity());
+        account.setAccountType(request.getAccountType());
 
         return account;
     }

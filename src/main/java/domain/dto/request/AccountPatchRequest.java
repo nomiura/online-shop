@@ -2,6 +2,7 @@ package domain.dto.request;
 
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,6 +10,7 @@ import lombok.Data;
 @AllArgsConstructor
 @Data
 public class AccountPatchRequest {
+    @NotBlank(message = "Почта не должна быть пустой")
     @Email(message = "Неправильный формат почты")  // НЕТ @NotBlank!
     private String email;  // опционально (если null - не трогаем)
 
