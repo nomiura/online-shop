@@ -1,8 +1,10 @@
 package domain.dto.request;
 
 
+import domain.entity.AccountType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,4 +27,7 @@ public class AccountCreateRequest {
 
     @NotBlank(message = "Город обязателен")
     private String city;
+
+    @NotNull(message = "Тип аккаунта обязателен") // @NotBlank для String
+    private AccountType accountType;
 }

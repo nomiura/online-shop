@@ -69,18 +69,11 @@ public class AccountController {
         //передаем в сервис для бизнес-логики??
         //превращаем entity -> responseDto
 
-        log.info("=== CONTROLLER: Received request to create account ===");
-        log.info("Email: {}", request.getEmail());
-        log.info("Phone: {}", request.getPhone());
-        log.info("City: {}", request.getCity());
-        log.info("Password length: {}", request.getPassword().length());
-
         // 1. Передаём request в сервис, сервис возвращает DTO (не Entity!)
         AccountResponseDto response = accountService.createAccount(request);
 
         // 2. ID берём из response (там есть поле id)
         URI location = URI.create("/account" + response.getId());
-        log.info("=== CONTROLLER: Account created with ID: {} ===", response.getId());
         // 3. Возвращаем 201 Created с location и body
         return ResponseEntity
                 .created(location)
@@ -101,7 +94,6 @@ public class AccountController {
     public ResponseEntity<AccountResponseDto> updateAccount(
             @PathVariable Long id,
             @Valid @RequestBody AccountPatchRequest request) {
-
         AccountResponseDto response = accountService.updateAccount(id, request);
         return ResponseEntity.ok(response);
     }

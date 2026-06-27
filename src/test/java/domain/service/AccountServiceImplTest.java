@@ -2,9 +2,11 @@ package domain.service;
 
 import domain.OnlineShopApplication;
 import domain.dto.request.AccountCreateRequest;
+import domain.dto.request.AccountPatchRequest;
 import domain.dto.request.AccountUpdateRequest;
 import domain.dto.response.AccountResponseDto;
 import domain.entity.Account;
+import domain.entity.AccountType;
 import domain.exception.AccountNotFoundException;
 import domain.exception.DataAccessException;
 import domain.exception.EmailAlreadyExistsException;
@@ -27,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@SpringBootTest(classes = OnlineShopApplication.class)
 class AccountServiceImplTest {
     //Mock`создает подделку,@InjectMocks создает реальный объект
     //https://www.youtube.com/watch?v=EODRGCrZu5A
@@ -44,7 +45,8 @@ class AccountServiceImplTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
-
+    //подготовь -> выполни -> проверь
+    //arrange -> act -> assert
     //GET
     //-------------------------------------------------------------------------
     @Test
@@ -55,8 +57,7 @@ class AccountServiceImplTest {
         Account account = new Account();
         account.setId(id);
         account.setEmail("nyanya@mail.ru");
-
-        AccountResponseDto expectedDto = new AccountResponseDto(id,"nyanya@mail.ru");
+        AccountResponseDto expectedDto = new AccountResponseDto(id, "nyanya@mail.ru");
 
         //как только будет обращения к мокам, отдаем то, что создали сверху
         //то есть задали поведение
@@ -76,7 +77,7 @@ class AccountServiceImplTest {
 
     @Test
     @DisplayName("Should throw AccountNotFoundException when account doesn't exist")
-    void getAccountById_ShouldThrowException_WhenAccountNotFound() {
+    void getAccountById_shouldThrowException_whenAccountNotFound() {
         Long id = 999L;
 
         when(accountRepository.findById(id)).thenReturn(Optional.empty());
@@ -95,7 +96,8 @@ class AccountServiceImplTest {
                 "nyanya@gmail.ru",
                 "123456",
                 "89134567890",
-                "Санкт-Петербург"
+                "Санкт-Петербург",
+                AccountType.INDIVIDUAL
         );
 
         Account account = new Account();
@@ -131,12 +133,13 @@ class AccountServiceImplTest {
 
     @Test
     @DisplayName("Should throw EmailAlreadyExistsException when email already exists")
-    void createAccount_ShouldThrowException_WhenEmailAlreadyExists() {
+    void createAccount_shouldThrowException_whenEmailAlreadyExists() {
         AccountCreateRequest request = new AccountCreateRequest(
                 "ivan@gmail.com",
                 "123456",
                 "89134567890",
-                "Санкт-Петербург"
+                "Санкт-Петербург",
+                AccountType.INDIVIDUAL
         );
 
         when(accountRepository.existsByEmail(request.getEmail())).thenReturn(true);
@@ -145,17 +148,19 @@ class AccountServiceImplTest {
                 .isInstanceOf(EmailAlreadyExistsException.class)
                 .hasMessage("Email already exists: " + request.getEmail());
 
+        verify(accountRepository, times(1)).existsByEmail(request.getEmail());
         verify(accountRepository, never()).save(any(Account.class));
     }
 
     @Test
     @DisplayName("Should throw DataAccessException when repository fails")
-    void createAccount_ShouldThrowException_WhenRepositoryFails() {
+    void createAccount_shouldThrowException_whenRepositoryFails() {
         AccountCreateRequest request = new AccountCreateRequest(
                 "ivan@gmail.com",
                 "123456",
                 "89134567890",
-                "Санкт-Петербург"
+                "Санкт-Петербург",
+                AccountType.INDIVIDUAL
         );
 
         Account account = new Account();
@@ -169,11 +174,10 @@ class AccountServiceImplTest {
                 .isInstanceOf(DataAccessException.class)
                 .hasMessage("Database error");
 
-        verify(accountMapper,times(1)).accountToEntity(request);
-        verify(accountRepository,times(1)).save(account);
+        verify(accountMapper, times(1)).accountToEntity(request);
+        verify(accountRepository, times(1)).save(account);
         verify(accountMapper, never()).accountToResponseDto(any(Account.class));
     }
-
 
 
     //PUT
@@ -205,7 +209,7 @@ class AccountServiceImplTest {
         updatedAccount.setPhone("89134567890");
         updatedAccount.setCity("Санкт-Петербург");
 
-        AccountResponseDto expectedResponse = new AccountResponseDto(id,   "ivan@gmail.com");
+        AccountResponseDto expectedResponse = new AccountResponseDto(id, "ivan@gmail.com");
 
         //when
         when(accountRepository.findById(id)).thenReturn(Optional.of(account));
@@ -230,7 +234,7 @@ class AccountServiceImplTest {
 
     @Test
     @DisplayName("Should throw EmailAlreadyExistsException when email already exists")
-    void fullUpdateAccount_ShouldThrowException_WhenEmailAlreadyExists() {
+    void fullUpdateAccount_shouldThrowException_whenEmailAlreadyExists() {
         Long id = 1L;
         AccountUpdateRequest request = new AccountUpdateRequest(
                 "ivan@gmail.com",
@@ -261,9 +265,122 @@ class AccountServiceImplTest {
 
     //PATCH
     //-------------------------------------------------------------------------
+    @Test
+    @DisplayName("Should return AccountResponseDto when account is updated")
+    void updateAccount_shouldReturnDto_whenAccountIsUpdated() {
+        Long id = 1L;
+        Account oldAccount = new Account();
+        oldAccount.setId(id);
+        oldAccount.setEmail("travyanoe1488@gmail.com");
+        oldAccount.setPassword("12345673");
+        oldAccount.setPhone("89134567890");
+        oldAccount.setCity("Донецк");
+        oldAccount.setAccountType(AccountType.INDIVIDUAL);
 
+        AccountPatchRequest request = new AccountPatchRequest(
+                "travyanoe@gmail.com",
+                "12345673",
+                "89134567890",
+                "Санкт-Петербург"
+        );
+
+        String encodedPassword = "encoded123456";
+        Account updatedAccount = new Account();
+        updatedAccount.setId(id);
+        updatedAccount.setEmail("travyanoe@gmail.com");
+        updatedAccount.setPassword(encodedPassword);
+        updatedAccount.setPhone(null);
+        updatedAccount.setCity("Санкт-Петербург");
+
+        AccountResponseDto expectedDto = new AccountResponseDto(id, "travyanoe@gmail.com");
+        // стаббинг!
+        when(accountRepository.findById(id)).thenReturn(Optional.of(oldAccount));
+        when(accountRepository.existsByEmail(request.getEmail())).thenReturn(false);
+        when(passwordEncoder.encode(request.getPassword())).thenReturn(encodedPassword);
+        when(accountRepository.save(oldAccount)).thenReturn(updatedAccount);
+        when(accountMapper.accountToResponseDto(updatedAccount)).thenReturn(expectedDto);
+
+        AccountResponseDto actualResponse = accountServiceImpl.updateAccount(id, request);
+
+        assertThat(actualResponse).isNotNull();
+        assertThat(actualResponse.getId()).isEqualTo(id);
+        assertThat(actualResponse.equals(expectedDto));
+
+        verify(accountRepository, times(1)).findById(id);
+        verify(accountRepository, times(1)).existsByEmail(request.getEmail());
+        verify(passwordEncoder, times(1)).encode(request.getPassword());
+        verify(accountRepository, times(1)).save(oldAccount);
+        verify(accountMapper, times(1)).accountToResponseDto(updatedAccount);
+    }
+
+    @Test
+    @DisplayName("Should return exception when email exists")
+    void updateAccount_shouldReturnEmailAlreadyExistsException_whenEmailExists() {
+        Long accountIdToUpdate = 2L;
+        String newEmail = "travyanoe@gmail.com";
+        Account accountToUpdate = new Account();
+        accountToUpdate.setId(accountIdToUpdate);
+        accountToUpdate.setEmail("travyanoe1488@gmail.com");
+        accountToUpdate.setPassword("12345673");
+        accountToUpdate.setPhone("89134567890");
+        accountToUpdate.setCity("Донецк");
+        accountToUpdate.setAccountType(AccountType.INDIVIDUAL);
+
+        AccountPatchRequest request = new AccountPatchRequest(
+                newEmail,
+                "12345673",
+                "89134567890",
+                "Санкт-Петербург"
+        );
+
+        // стаббинг!
+        when(accountRepository.findById(accountIdToUpdate)).thenReturn(Optional.of(accountToUpdate));
+        when(accountRepository.existsByEmail(request.getEmail())).thenReturn(true);
+
+        assertThatThrownBy(() -> accountServiceImpl.updateAccount(accountIdToUpdate, request))
+                .isInstanceOf(EmailAlreadyExistsException.class)
+                .hasMessage("Email already exists: " + newEmail);
+
+        verify(accountRepository, times(1)).findById(accountIdToUpdate);
+        verify(accountRepository, times(1)).existsByEmail(request.getEmail());
+        verify(passwordEncoder, never()).encode(request.getPassword());
+        verify(accountRepository, never()).save(accountToUpdate);
+        verify(accountMapper, never()).accountToResponseDto(accountToUpdate);
+    }
 
 
     //DELETE
     //-------------------------------------------------------------------------
+    @Test
+    @DisplayName("Should delete account by id")
+    void deleteAccountById_shouldDeleteAccountById() {
+        Long id = 1L;
+        Account accountToDelete = new Account();
+        accountToDelete.setId(id);
+        accountToDelete.setEmail("test@mail.ru");
+
+        when(accountRepository.existsById(id)).thenReturn(true);
+        doNothing().when(accountRepository).deleteById(id); // просто проверяем, что он вызвался
+
+        //when
+        accountServiceImpl.deleteAccountById(id);
+
+        //then
+        verify(accountRepository, times(1)).existsById(id);
+        verify(accountRepository, times(1)).deleteById(id);
+    }
+
+    @Test
+    @DisplayName("Should return exception when account with id do not exist")
+    void deleteAccountById_shouldAccountNotFoundException_whenAccountIdDoNotExist() {
+        Long id = 88L;
+        when(accountRepository.existsById(id)).thenReturn(false);
+
+        assertThatThrownBy(() -> accountServiceImpl.deleteAccountById(id))
+                .isInstanceOf(AccountNotFoundException.class)
+                .hasMessage("Account not found by id: " + id);
+
+        verify(accountRepository, times(1)).existsById(id);
+        verify(accountRepository, never()).deleteById(id);
+    }
 }

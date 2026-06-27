@@ -32,22 +32,23 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    // AccountNotFoundException - 404
+    // AccountNotFoundException - 404 Not Found
     @ExceptionHandler(AccountNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(AccountNotFoundException ex) {
-        ErrorResponse error =  new ErrorResponse(
+        log.warn("AccountNotFoundException caught: {}", ex.getMessage());  // 👈 Добавьте это
+        ErrorResponse error = new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
                 ex.getMessage(),
                 LocalDateTime.now()
         );
-        return ResponseEntity.status( HttpStatus.NOT_FOUND).body(error);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
 
-    // EmailAlreadyExistsException - 409
+    // EmailAlreadyExistsException - 409 Conflict
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleException(EmailAlreadyExistsException ex) {
-        ErrorResponse error =  new ErrorResponse(
+        ErrorResponse error = new ErrorResponse(
                 HttpStatus.CONFLICT.value(),
                 ex.getMessage(),
                 LocalDateTime.now()
@@ -59,7 +60,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleException(Exception ex) {
         log.error("Unexpected error occurred", ex);
 
-        ErrorResponse error =  new ErrorResponse(
+        ErrorResponse error = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Internal server error",
                 LocalDateTime.now()
@@ -72,7 +73,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleException(DataAccessException ex) {
         log.error("Unexpected error occurred", ex);
 
-        ErrorResponse error =  new ErrorResponse(
+        ErrorResponse error = new ErrorResponse(
                 HttpStatus.SERVICE_UNAVAILABLE.value(),
                 ex.getMessage(),
                 LocalDateTime.now()
@@ -89,7 +90,7 @@ public class GlobalExceptionHandler {
 
         log.warn("Validation error for @RequestBody: {}", errors);
 
-        ErrorResponse error =  new ErrorResponse(
+        ErrorResponse error = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 ex.getMessage(),
                 LocalDateTime.now()
@@ -105,7 +106,7 @@ public class GlobalExceptionHandler {
 
         log.warn("Validation error for @PathVariable/@RequestBody: {}", errors);
 
-        ErrorResponse error =  new ErrorResponse(
+        ErrorResponse error = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 "Validation failed: " + errors,
                 LocalDateTime.now()

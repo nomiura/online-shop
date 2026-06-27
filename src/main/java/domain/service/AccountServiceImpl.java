@@ -48,16 +48,25 @@ public class AccountServiceImpl implements AccountService {
     public AccountResponseDto createAccount(AccountCreateRequest accountCreateRequest) {
         log.info("Creating account...");
 
-        if (accountRepository.findByEmail(accountCreateRequest.getEmail()).isPresent()) {
+        if (accountRepository.existsByEmail(accountCreateRequest.getEmail())) {
+            log.warn("Email already exists: {}", accountCreateRequest.getEmail());
             throw new EmailAlreadyExistsException("Email already exists: " + accountCreateRequest.getEmail());
         }
 
         Account account = accountMapper.accountToEntity(accountCreateRequest);
-        account.setPassword(passwordEncoder.encode(accountCreateRequest.getPassword()));
-        accountRepository.save(account);
+        if (account == null) {
+            account = new Account();
+            account.setEmail(accountCreateRequest.getEmail());
+            account.setPhone(accountCreateRequest.getPhone());
+            account.setCity(accountCreateRequest.getCity());
+            account.setAccountType(accountCreateRequest.getAccountType());
+        }
+          account.setPassword(passwordEncoder.encode(accountCreateRequest.getPassword()));
+
+        Account savedAccount = accountRepository.save(account);
 
         log.info("Account is created");
-        return accountMapper.accountToResponseDto(account);
+        return accountMapper.accountToResponseDto(savedAccount);
     }
 
     @Transactional
@@ -65,7 +74,8 @@ public class AccountServiceImpl implements AccountService {
     public AccountResponseDto fullUpdateAccount(Long id, AccountUpdateRequest request) {
         log.info("Fully updating account with id: {}", id + "...");
 
-        Account account = accountRepository.findById(id).orElseThrow(() -> new AccountNotFoundException("Account not found by id: " + id));
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found by id: " + id));
 
         //проверка на уникальность мыла
         if (accountRepository.existsByEmail(request.getEmail())) {
@@ -77,9 +87,9 @@ public class AccountServiceImpl implements AccountService {
         account.setPhone(request.getPhone());
         account.setCity(request.getCity());
 
-        accountRepository.save(account);
+        Account savedAccount = accountRepository.save(account);
 
-        return accountMapper.accountToResponseDto(account);
+        return accountMapper.accountToResponseDto(savedAccount);
     }
 
     @Transactional
@@ -111,22 +121,22 @@ public class AccountServiceImpl implements AccountService {
         if (request.getPhone() != null) {
             updatedAccount.setPhone(request.getPhone());
         }
-
-        accountRepository.save(updatedAccount);
-
         log.info("Account is updated with id: {}", id);
-        return accountMapper.accountToResponseDto(updatedAccount);
+
+        Account savedAccount = accountRepository.save(updatedAccount);
+        return accountMapper.accountToResponseDto(savedAccount);
     }
 
 
     @Transactional
     @Override
     public void deleteAccountById(Long id) {
+        if(!accountRepository.existsById(id)) {
+            throw new AccountNotFoundException("Account not found by id: " + id);
+        }
+
         log.info("Deleting account with id: {}", id + "...");
-
         accountRepository.deleteById(id);
-
         log.info("Account is deleted with id: {}", id);
     }
-
 }
