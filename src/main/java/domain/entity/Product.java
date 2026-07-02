@@ -1,13 +1,9 @@
 package domain.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import jakarta.persistence.Id;
 
 import java.math.BigDecimal;
 
@@ -25,4 +21,9 @@ public class Product {
     private String description;
 
     private BigDecimal currentPrice;
+
+    private String image;
+
+    // нужны поля со скидками
+
 }
