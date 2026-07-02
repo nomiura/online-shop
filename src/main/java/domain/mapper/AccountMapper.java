@@ -8,8 +8,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class AccountMapper {
 
-
-
     public AccountResponseDto accountToResponseDto(Account account) {
         if (account == null) return null;
 
@@ -27,7 +25,6 @@ public class AccountMapper {
 
         Account account = new Account();
         account.setEmail(request.getEmail());
-       // account.setPassword(request.getPassword());
 
         account.setPhone(request.getPhone());
         account.setCity(request.getCity());

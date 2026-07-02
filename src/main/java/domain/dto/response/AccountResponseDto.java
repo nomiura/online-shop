@@ -1,8 +1,6 @@
 package domain.dto.response;
 
-
 import lombok.*;
-
 
 //отдаем пользователю
 @Getter
