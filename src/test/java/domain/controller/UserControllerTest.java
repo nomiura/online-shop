@@ -1,4 +1,4 @@
-package ru.test.domain.controller;
+package domain.controller;
 
 
 import domain.controller.UserController;
