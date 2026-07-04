@@ -1,11 +1,10 @@
 package domain.service;
 
 import domain.dto.request.CreateOrderRequest;
-import domain.dto.request.UpdateStatusOrderRequest;
+import domain.dto.request.UpdateDescriptionRequest;
+import domain.dto.response.OrderResponse;
 import domain.entity.*;
-import domain.exception.AccountNotFoundException;
-import domain.exception.CartEmptyException;
-import domain.exception.QuantityLimitExceededException;
+import domain.exception.*;
 import domain.mapper.OrderMapper;
 import domain.repository.AccountRepository;
 import domain.repository.OrderRepository;
@@ -17,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -27,15 +25,17 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     private final AccountRepository accountRepository;
 
-    @Transactional
+    @Transactional(readOnly = true)
     @Override
-    public Optional<Order> findById(Long id) {
-        return  orderRepository.findById(id) ;
+    public OrderResponse findById(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+        return orderMapper.toResponse(order);
     }
 
     @Transactional
     @Override
-    public Order createOrder(CreateOrderRequest request) {
+    public OrderResponse createOrder(CreateOrderRequest request) {
         Account account = accountRepository.findById(request.getAccountId())
                         .orElseThrow(() -> new AccountNotFoundException("Account not found"));
         Cart cart = account.getCart();
@@ -72,24 +72,42 @@ public class OrderServiceImpl implements OrderService {
         order.setItems(orderItems);
         orderRepository.save(order);
         cart.getItems().clear();
-        return order;
+        return orderMapper.toResponse(order);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<OrderResponse> findByAccountId(Long accountId) {
+       return orderRepository.findByCreatedBy_Id(accountId).stream()
+               .map(orderMapper::toResponse)
+               .toList();
     }
 
     @Transactional
     @Override
-    public List<Order> findByAccount(Long accountId) {
-        return new ArrayList<>();
+    public OrderResponse cancelOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        if(!order.getOrderStatus().isCreated()) {
+            throw new InvalidOrderStatusException("Отмена из данного статуса запрещена.");
+        }
+
+        order.setOrderStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+        return orderMapper.toResponse(order);
     }
 
     @Transactional
     @Override
-    public Order updateOrderStatus(Long id, UpdateStatusOrderRequest request) {
-        return null;
+    public OrderResponse updateComment(Long orderId, UpdateDescriptionRequest request) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        if(order.getOrderStatus().isTerminal()) {
+            throw new InvalidOrderStatusException("Изменение комментария из данного статуса запрещено.");
+        }
+        order.setDescription(request.getDescription());
+
+        return orderMapper.toResponse(order);
     }
 
-    @Transactional
-    @Override
-    public Order updateComment(Long id, String comment) {
-        return null;
-    }
 }
