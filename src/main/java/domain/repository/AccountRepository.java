@@ -23,7 +23,5 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 //    accountRepository.findAll(Sort.by("name")); // сортировка
 //    accountRepository.findAll(PageRequest.of(0, 10)); // пагинация
     Optional<Account> findByEmail(String email);
-
-
     boolean existsByEmail(String email);
 }
