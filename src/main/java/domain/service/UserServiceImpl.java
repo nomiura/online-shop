@@ -30,6 +30,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public User createUser(CreateUserRequest request) {
+        log.debug("Creating user {}", request);
         User user = userMapper.toEntity(request);
         User createdUser = userRepository.save(user);
         log.info("User successfully created.");
@@ -47,7 +48,6 @@ public class UserServiceImpl implements UserService {
         if (request.getBirthday() != null) updatedUser.setBirthday(request.getBirthday());
         if (request.getAddresses() != null) updatedUser.setAddresses(request.getAddresses());
 
-        userRepository.save(updatedUser);
         log.info("User successfully updated with id {}.", id);
         return updatedUser;
     }
