@@ -1,18 +1,17 @@
 package domain.service;
 
-import domain.entity.Account;
-import domain.entity.Cart;
+import domain.dto.response.CartResponseDto;
 import domain.entity.Order;
 
 public interface CartService {
-    Cart getCart(Long accountId);
-    Cart createCart(Long accountId);
-    Cart addItem(Long accountId, Long itemId, Integer quantity);
-    Cart updateItemQuantity(Long accountId, Long itemId, Integer quantity);
-    Cart removeItem(Long accountId, Long itemId);
+    CartResponseDto getCart(Long accountId);
+    CartResponseDto addItem(Long accountId, Long productId, Integer quantity);
+    CartResponseDto updateItemQuantity(Long accountId, Long productId, Integer quantity);
+    void removeItem(Long accountId, Long productId);
 
     void clearCart(Long accountId);
 
-    Cart applyPromoCode(Long accountId, Integer promoCode);
+    CartResponseDto applyPromoCode(Long accountId, String promoCode);
+    CartResponseDto removePromoCode(Long accountId);
     Order convertCartToOrder(Long accountId);
 }

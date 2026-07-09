@@ -25,7 +25,6 @@ public class AccountMapper {
 
         Account account = new Account();
         account.setEmail(request.getEmail());
-
         account.setPhone(request.getPhone());
         account.setCity(request.getCity());
         account.setAccountType(request.getAccountType());

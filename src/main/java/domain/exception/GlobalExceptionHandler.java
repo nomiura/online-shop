@@ -32,6 +32,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    //TODO ProductNotFoundException
+
+
     // AccountNotFoundException - 404 Not Found
     @ExceptionHandler(AccountNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(AccountNotFoundException ex) {
