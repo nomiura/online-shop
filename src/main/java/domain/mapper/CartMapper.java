@@ -1,8 +1,8 @@
 package domain.mapper;
 
-import domain.dto.request.CartToAddRequest;
+import domain.dto.request.CartAddRequest;
 import domain.dto.response.CartItemResponse;
-import domain.dto.response.CartResponse;
+import domain.dto.response.CartResponseDto;
 import domain.entity.Cart;
 import domain.entity.CartItem;
 import lombok.AllArgsConstructor;
@@ -16,10 +16,10 @@ public class CartMapper {
 
     private final CartItemMapper cartItemMapper;
 
-    public CartResponse cartToResponseDto(Cart cart) {
+    public CartResponseDto cartToResponseDto(Cart cart) {
         if (cart == null) return null;
 
-        CartResponse cartResponse = new CartResponse();
+        CartResponseDto cartResponse = new CartResponseDto();
         cartResponse.setCartId(cart.getId());
 
         List<CartItemResponse> cartItemMapperList = cart.getItems()
@@ -36,14 +36,11 @@ public class CartMapper {
         return cartResponse;
     }
 
-    public Cart requestToCart(CartToAddRequest request) {
+    public Cart requestToCart(CartAddRequest request) {
         if (request == null) return null;
 
         Cart cart = new Cart();
         CartItem cartItem = new CartItem();
-
-
         return cart;
     }
-
 }

@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Data
-public class CartResponse {
+public class CartResponseDto {
     private Long cartId;
     private List<CartItemResponse> items;
     private Integer totalQuantity;

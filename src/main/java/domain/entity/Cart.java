@@ -33,7 +33,7 @@ public class Cart {
 
     //товары в корзине
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL,
-            orphanRemoval = true, fetch = FetchType.EAGER)
+            orphanRemoval = true, fetch = FetchType.LAZY)
     private List<CartItem> items = new ArrayList<>();
 
 
@@ -63,4 +63,44 @@ public class Cart {
             precision = 12, scale = 2)
     //precision точность(общее кол-во всех цифр в числе - до и после запятой), scale масштаб (кол-во цифр после запятой)
     private BigDecimal promoCodeDiscount = BigDecimal.ZERO; //сумма скидки по промокоду
+
+    //пересчет итоговых сумм
+    public void recalculateTotals() {
+        this.totalQuantity = items.stream()
+                .mapToInt(CartItem::getQuantity)
+                .sum();
+
+
+        //для каждого item в потоке берется цену за 1 товара
+        //и умножается на общее кол-во всех товаров
+        this.subtotalPrice = items.stream()
+                .map(item -> item.getPriceAddition()
+                        .multiply(BigDecimal.valueOf(getTotalQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        //применяем скидку, если есть
+        BigDecimal discount = calculateDiscount();
+        this.discountPrice = discount;
+
+        this.totalPrice = this.subtotalPrice
+                .subtract(discount) //substract() -точное вычитание у BigDecimal
+                .add(deliveryPrice !=null ? deliveryPrice : BigDecimal.ZERO);
+    }
+
+    private BigDecimal calculateDiscount() {
+        BigDecimal discount = BigDecimal.ZERO;
+
+        //промокод
+        if(promoCode != null && promoCodeDiscount != null) {
+            discount = discount.add(promoCodeDiscount);
+        }
+
+        //можно придумать какую-н автоматическую скидку при какой-то сумме
+        //или грейды скидок даж
+        return discount;
+    }
+
+    public boolean isEmpty() {
+        return items.isEmpty();
+    }
 }

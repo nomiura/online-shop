@@ -58,4 +58,8 @@ public class CartItem {
             priceAddition = product.getCurrentPrice();
         }
     }
+
+    public BigDecimal getPriceAtAdd(BigDecimal currentPrice) {
+        return priceAddition;
+    }
 }
