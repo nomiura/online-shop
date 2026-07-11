@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
     // AccountNotFoundException - 404 Not Found
     @ExceptionHandler(AccountNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(AccountNotFoundException ex) {
-        log.warn("AccountNotFoundException caught: {}", ex.getMessage());  // 👈 Добавьте это
+        log.warn("AccountNotFoundException caught: {}", ex.getMessage());
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
                 ex.getMessage(),
@@ -130,4 +130,41 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
+
+    //передаем в него всё, это метод-помошник, чтобы не дублировать много кода
+    private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, Exception ex) {
+        log.warn("{} caught: {}", ex.getClass().getSimpleName(), ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                status.value(),
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(status).body(error);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleException(UserNotFoundException ex) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex);
+    }
+
+    @ExceptionHandler(OrderNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleException(OrderNotFoundException ex) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex);
+    }
+
+    @ExceptionHandler(InvalidOrderStatusException.class)
+    public ResponseEntity<ErrorResponse> handleException(InvalidOrderStatusException ex) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex);
+    }
+
+    @ExceptionHandler(QuantityLimitExceededException.class)
+    public ResponseEntity<ErrorResponse> handleException(QuantityLimitExceededException ex) {
+        return  buildErrorResponse(HttpStatus.BAD_REQUEST, ex);
+    }
+
+    @ExceptionHandler(CartEmptyException.class)
+    public ResponseEntity<ErrorResponse> handleException(CartEmptyException ex) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex);
+    }
+
 }

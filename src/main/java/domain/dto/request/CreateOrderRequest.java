@@ -1,13 +1,11 @@
 package domain.dto.request;
 
-import domain.entity.Account;
-import domain.entity.OrderStatus;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -15,9 +13,9 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class CreateOrderRequest {
 
+    @NotNull(message = "ID аккаунта обязателен")
     private Long accountId;
-    private Long orderId;
-    private OrderStatus orderStatus;
+
+    @Size(max = 500, message = "Комментарий не должен превышать 500 символов")
     private String description;
-    private BigDecimal price;
 }
