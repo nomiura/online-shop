@@ -23,7 +23,7 @@ public class Order {
     private Long orderId;
 
     @ManyToOne
-    @JoinColumn(name = "accounts")
+    @JoinColumn(name = "account_id")
     private Account createdBy;
 
     private BigDecimal price;

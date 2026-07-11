@@ -7,6 +7,7 @@ import domain.dto.request.UpdateUserRequest;
 import domain.dto.response.UserResponse;
 import domain.entity.Sex;
 import domain.entity.User;
+import domain.exception.GlobalExceptionHandler;
 import domain.mapper.UserMapper;
 import domain.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,8 +51,9 @@ class UserControllerTest {
 
     @BeforeEach
     public void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
-        objectMapper = new ObjectMapper();
+        mockMvc = MockMvcBuilders.standaloneSetup(userController)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
     }
 
     @Test

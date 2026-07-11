@@ -43,7 +43,6 @@ public class CartItem {
     //доп инфа по товару
     @Column(name = "comments")
     private String comment; // комментарии пользователей, к примеру, "подарочная упаковка"
-    //я считаю коммент нужен к заказу, а не к корзине
 
     @Column()
     private LocalDateTime addedTime;
