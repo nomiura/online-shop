@@ -37,6 +37,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponse createOrder(CreateOrderRequest request) {
         log.info("Creating order for account id: {}", request.getAccountId());
+
         Account account = accountRepository.findById(request.getAccountId())
                         .orElseThrow(() -> new AccountNotFoundException("Account not found"));
         Cart cart = account.getCart();
