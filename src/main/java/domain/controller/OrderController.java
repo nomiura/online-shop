@@ -43,8 +43,8 @@ public class OrderController {
         return ResponseEntity.ok(orderService.cancelOrder(orderId));
     }
 
-    @PatchMapping("/{orderId}/comment")
-    public ResponseEntity<OrderResponse> updateComment(@PathVariable Long orderId, @Valid @RequestBody UpdateDescriptionRequest request) {
-        return ResponseEntity.ok(orderService.updateComment(orderId,request));
+    @PatchMapping("/{orderId}/description")
+    public ResponseEntity<OrderResponse> updateDescription(@PathVariable Long orderId, @Valid @RequestBody UpdateDescriptionRequest request) {
+        return ResponseEntity.ok(orderService.updateDescription(orderId,request));
     }
 }

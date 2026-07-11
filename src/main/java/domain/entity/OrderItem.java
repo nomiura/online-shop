@@ -20,7 +20,12 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Integer quantity;
+
+    @Column(name = "price_at_purchase", precision = 12, scale = 2)
     private BigDecimal priceAtPurchase;
+
+    @Column(name = "original_price", precision = 12, scale = 2)
+    private BigDecimal originalPrice;
 
     @ManyToOne
     @JoinColumn(name = "order_id")

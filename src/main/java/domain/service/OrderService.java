@@ -12,6 +12,6 @@ public interface OrderService {
     List<OrderResponse> findByAccountId(Long accountId);
     OrderResponse createOrder(CreateOrderRequest request);
     OrderResponse cancelOrder(Long id);
-    OrderResponse updateComment(Long id, UpdateDescriptionRequest request);
+    OrderResponse updateDescription(Long id, UpdateDescriptionRequest request);
 
 }
