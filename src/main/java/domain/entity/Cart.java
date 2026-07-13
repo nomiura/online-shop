@@ -45,13 +45,13 @@ public class Cart {
     private BigDecimal totalPrice = BigDecimal.ZERO; //итоговая сумма всех товаров, включая скидку
 
     @Column(name = "discount_price", precision = 12, scale = 2) //все скидки вместе
-    private BigDecimal discountPrice =  BigDecimal.ZERO;
+    private BigDecimal discountPrice = BigDecimal.ZERO;
 
     @Column(name = "total_quantity") //общее кол-во товаров в корзине
     private Integer totalQuantity = 0;
 
 
-    @Column(name= "delivery_price")
+    @Column(name = "delivery_price")
     private BigDecimal deliveryPrice = BigDecimal.ZERO; //стоимость доставки
 
 
@@ -66,38 +66,34 @@ public class Cart {
 
     //пересчет итоговых сумм
     public void recalculateTotals() {
+        // Пересчет количества
         this.totalQuantity = items.stream()
                 .mapToInt(CartItem::getQuantity)
                 .sum();
 
 
-        //для каждого item в потоке берется цену за 1 товара
-        //и умножается на общее кол-во всех товаров
+        // Пересчет суммы без скидки (subtotal)
         this.subtotalPrice = items.stream()
                 .map(item -> item.getPriceAddition()
-                        .multiply(BigDecimal.valueOf(getTotalQuantity())))
+                        .multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         //применяем скидку, если есть
-        BigDecimal discount = calculateDiscount();
+        BigDecimal discount = this.promoCodeDiscount != null
+                ? this.promoCodeDiscount
+                : BigDecimal.ZERO;
         this.discountPrice = discount;
 
+        // Итоговая сумма = сумма товаров - скидка + доставка
         this.totalPrice = this.subtotalPrice
                 .subtract(discount) //substract() -точное вычитание у BigDecimal
-                .add(deliveryPrice !=null ? deliveryPrice : BigDecimal.ZERO);
+                .add(deliveryPrice != null ? deliveryPrice : BigDecimal.ZERO);
     }
 
-    private BigDecimal calculateDiscount() {
-        BigDecimal discount = BigDecimal.ZERO;
-
-        //промокод
-        if(promoCode != null && promoCodeDiscount != null) {
-            discount = discount.add(promoCodeDiscount);
-        }
-
-        //можно придумать какую-н автоматическую скидку при какой-то сумме
-        //или грейды скидок даж
-        return discount;
+    public void clearPromoCode() {
+        this.promoCode = null;
+        this.promoCodeDiscount = BigDecimal.ZERO;
+        recalculateTotals();
     }
 
     public boolean isEmpty() {

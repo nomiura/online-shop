@@ -27,10 +27,12 @@ public class Product {
     private BigDecimal currentPrice;
 
     @Column(nullable = false)
+
     private Integer discountPercent = 0;
 
     private String image;
 
+    @Column(name = "quantity_available")
     private Integer quantityAvailable;
 
     public BigDecimal getEffectivePrice() {
@@ -40,8 +42,5 @@ public class Product {
         return currentPrice
                 .multiply(BigDecimal.valueOf(100 - discountPercent))
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-    }
-    public boolean isInStock() {
-        return quantityAvailable != null && quantityAvailable > 0;
     }
 }
