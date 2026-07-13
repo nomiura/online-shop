@@ -4,15 +4,16 @@ import domain.dto.response.CartResponseDto;
 import domain.entity.*;
 import domain.exception.AccountNotFoundException;
 import domain.mapper.CartMapper;
-import domain.repository.AccountRepository;
-import domain.repository.CartRepository;
-import domain.repository.OrderRepository;
-import domain.repository.ProductRepository;
+import domain.repository.*;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import domain.exception.*;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
 
 @Data
 @Slf4j
@@ -22,6 +23,7 @@ public class CartServiceImpl implements CartService {
     private final CartMapper cartMapper;
     private final AccountRepository accountRepository;
     private final ProductRepository productRepository;
+    private final PromoCodeRepository promoCodeRepository;
 
     @Transactional(readOnly = true)
     @Override
@@ -62,8 +64,8 @@ public class CartServiceImpl implements CartService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + productId));
 
-        int available = productRepository.getQuantityAvailable(productId);
-        if(available < quantity) {
+        int available = productRepository.getQuantityAvailableById(productId);
+        if (available < quantity) {
             throw new InsufficientStockException("Insufficient quantity of items. Available: " + available);
         }
 
@@ -72,7 +74,7 @@ public class CartServiceImpl implements CartService {
                 .findFirst()
                 .orElse(null);
 
-        if(existingItem != null) {
+        if (existingItem != null) {
             existingItem.setQuantity(existingItem.getQuantity() + quantity);
         } else {
             CartItem cartItem = new CartItem();
@@ -103,13 +105,13 @@ public class CartServiceImpl implements CartService {
 
         //фильтруем по productId
         CartItem item = cart.getItems().stream()
-                        .filter(i -> i.getProduct().getId().equals(productId))
-                        .findFirst()
-                        .orElseThrow(() -> new CartItemNotFoundException("CartItem not found with product id: " + productId));
+                .filter(i -> i.getProduct().getId().equals(productId))
+                .findFirst()
+                .orElseThrow(() -> new CartItemNotFoundException("CartItem not found with product id: " + productId));
 
         //проверка остатков
-        int available = productRepository.getQuantityAvailable(productId);
-        if(available < quantity) {
+        int available = productRepository.getQuantityAvailableById(productId);
+        if (available < quantity) {
             throw new InsufficientStockException("Insufficient quantity. Available: " + available + ", requested: " + quantity);
         }
         item.setQuantity(quantity);
@@ -135,7 +137,7 @@ public class CartServiceImpl implements CartService {
         cart.getItems().remove(item);
 
         //если корзина пустая, то ее можно удалить
-        if(cart.getItems().isEmpty()) {
+        if (cart.getItems().isEmpty()) {
             cartRepository.delete(cart);
             log.info("Cart {} became empty and was deleted", cart.getId());
         } else {
@@ -152,7 +154,7 @@ public class CartServiceImpl implements CartService {
         log.info("Clearing cart for account {}", accountId);
 
         Cart cart = cartRepository.findByAccountId(accountId)
-                        .orElseThrow(() -> new CartEmptyException("Cart not found for account with id: " + accountId));
+                .orElseThrow(() -> new CartEmptyException("Cart not found for account with id: " + accountId));
 
         //если корзина пуста
         if (cart.getItems().isEmpty()) {
@@ -168,14 +170,120 @@ public class CartServiceImpl implements CartService {
 
     @Transactional
     @Override
-    public CartResponseDto applyPromoCode(Long accountId, String promoCode) {
-        return null;
+    public CartResponseDto applyPromoCode(Long accountId, String code) {
+        Cart cart = getOrCreateCart(accountId);
+
+        PromoCode promoCode = promoCodeRepository.findByCode(code)
+                .orElseThrow(() -> new PromoCodeException("PromoCode not found with promo code: " + code));
+
+        //валидация промокода для корзины
+        validatePromoCodeForCart(promoCode, cart);
+
+        //расчет скидки
+        BigDecimal discountedPrice = calculateDiscount(promoCode, cart.getSubtotalPrice()); //subtotalprice!
+
+        //применяем к корзине
+        cart.setPromoCode(code);
+        cart.setDiscountPrice(discountedPrice);
+
+        //пересчет всех сумм уже с учетом промокода
+        cart.recalculateTotals(); //пересчет ВСЕХ сумм
+
+        //обновляем счетчик использований промокода
+        promoCode.setUsedCount(promoCode.getUsedCount() + 1);
+        promoCodeRepository.save(promoCode);
+
+        Cart savedCart = cartRepository.save(cart);
+        return cartMapper.cartToResponseDto(savedCart);
+    }
+
+    private void validatePromoCodeForCart(PromoCode promoCode, Cart cart) {
+        //базовая валидация
+        validatePromoCode(promoCode);
+
+        if (promoCode.getMinOrderAmount() != null) {
+            if (cart.getSubtotalPrice().compareTo(promoCode.getMinOrderAmount()) < 0) {
+                throw new PromoCodeException("Minimum amount of order should be reached: "
+                        + promoCode.getMinOrderAmount());
+
+            }
+        }
+
+        if (promoCode.getCode().equals(cart.getPromoCode())) {
+            throw new PromoCodeException("Promo code is already applied");
+        }
+    }
+
+    private void validatePromoCode(PromoCode promoCode) {
+        if (!promoCode.getIsActive()) throw new PromoCodeException("PromoCode is no longer valid.");
+        LocalDateTime now = LocalDateTime.now();
+
+        if (promoCode.getTimeValidFrom() != null && now.isBefore(promoCode.getTimeValidFrom())) {
+            throw new PromoCodeException("Promo code is not active for now. The starting time is "
+                    + promoCode.getTimeValidFrom());
+        }
+
+        if (promoCode.getTimeValidTo() != null && now.isAfter(promoCode.getTimeValidTo())) {
+            throw new PromoCodeException("Promo code is no longer active.");
+        }
+
+        if (promoCode.getUsageLimit() != null) {
+            if (promoCode.getUsedCount() >= promoCode.getUsageLimit()) {
+                throw new PromoCodeException("Promo code is already used. Limit usage: "
+                        + promoCode.getUsageLimit());
+            }
+        }
+    }
+
+    private BigDecimal calculateDiscount(PromoCode promoCode, BigDecimal subtotalPrice) {
+        BigDecimal discountPrice = BigDecimal.ZERO;
+
+        if (promoCode.getDiscountType() == DiscountType.FIXED) {
+            discountPrice = promoCode.getDiscountValue();
+            //скидка не может быть больше суммы заказа
+            if (discountPrice.compareTo(subtotalPrice) > 0) {
+                discountPrice = subtotalPrice;
+            }
+        } else if (promoCode.getDiscountType() == DiscountType.PERCENT) {
+            discountPrice = subtotalPrice.multiply(promoCode.getDiscountValue())
+                    .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+
+        }
+
+        if (promoCode.getMaxDiscount() != null && discountPrice.compareTo(promoCode.getMaxDiscount()) > 0) {
+            discountPrice = promoCode.getMaxDiscount();
+        }
+
+        return discountPrice.setScale(2, RoundingMode.HALF_UP);
     }
 
     @Transactional
     @Override
     public CartResponseDto removePromoCode(Long accountId) {
-        return null;
+        Cart cart = getOrCreateCart(accountId);
+
+        if (cart.getPromoCode() == null) {
+            throw new PromoCodeException("No promo code applied to the cart.");
+        }
+
+        PromoCode promoCode = promoCodeRepository.findByCode(cart.getPromoCode())
+                .orElseThrow(() -> new PromoCodeException("PromoCode not found with promo code: " + cart.getPromoCode()));
+
+        //уменьшаем счетчик использования промокода (пользователь отменил применение)
+        if (promoCode.getUsedCount() > 0) {
+            promoCode.setUsedCount(promoCode.getUsedCount() - 1);
+            promoCodeRepository.save(promoCode);
+        }
+
+        //очищаем промокод в корзине
+        cart.setPromoCode(null);
+        cart.setPromoCodeDiscount(BigDecimal.ZERO);
+
+        //пересчет сумм
+        cart.recalculateTotals();
+
+        Cart savedCart = cartRepository.save(cart);
+        return cartMapper.cartToResponseDto(savedCart);
     }
 
     @Transactional
