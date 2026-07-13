@@ -120,11 +120,11 @@ class UserControllerTest {
         User user = new User();
         user.setId(1L);
         UpdateUserRequest request = new UpdateUserRequest();
-        request.setUsername("Boanna");
+        request.setUsername("Kate");
         request.setBirthday(LocalDate.of(1993, 8, 22));
         request.setSex(Sex.FEMALE);
         request.setAddresses(List.of("Малая Токмачка","Средняя Токмачка"));
-        UserResponse response = new UserResponse(1L,"Boanna", LocalDate.of(1993,8,22),Sex.FEMALE, List.of("Малая Токмачка","Средняя Токмачка"));
+        UserResponse response = new UserResponse(1L,"Kate", LocalDate.of(1993,8,22),Sex.FEMALE, List.of("Малая Токмачка","Средняя Токмачка"));
         when(userService.updateUser(eq(1L),any(UpdateUserRequest.class))).thenReturn(user);
         when(userMapper.toResponse(user)).thenReturn(response);
 

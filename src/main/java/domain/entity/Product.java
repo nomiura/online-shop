@@ -31,6 +31,8 @@ public class Product {
 
     private String image;
 
+    private Integer quantityAvailable;
+
     public BigDecimal getEffectivePrice() {
         if (discountPercent == null || discountPercent == 0) {
             return currentPrice;
@@ -38,5 +40,8 @@ public class Product {
         return currentPrice
                 .multiply(BigDecimal.valueOf(100 - discountPercent))
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+    }
+    public boolean isInStock() {
+        return quantityAvailable != null && quantityAvailable > 0;
     }
 }
