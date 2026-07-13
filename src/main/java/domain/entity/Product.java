@@ -31,6 +31,9 @@ public class Product {
 
     private String image;
 
+    @Column(name = "quantity_available")
+    private Integer quantityAvailable;
+
     public BigDecimal getEffectivePrice() {
         if (discountPercent == null || discountPercent == 0) {
             return currentPrice;

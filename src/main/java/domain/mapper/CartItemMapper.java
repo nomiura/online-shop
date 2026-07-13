@@ -27,4 +27,5 @@ public class CartItemMapper {
                 .filter(Objects::nonNull)
                 .map(this::toCartItemResponse)
                 .toList();
-    }}
+    }
+}
