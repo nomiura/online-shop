@@ -99,7 +99,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public OrderResponse updateComment(Long orderId, UpdateDescriptionRequest request) {
+    public OrderResponse updateDescription(Long orderId, UpdateDescriptionRequest request) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
 
         if(order.getOrderStatus().isTerminal()) {
@@ -109,5 +109,4 @@ public class OrderServiceImpl implements OrderService {
 
         return orderMapper.toResponse(order);
     }
-
 }
