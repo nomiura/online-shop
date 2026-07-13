@@ -57,16 +57,19 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> orderItems = new ArrayList<>();
         BigDecimal price = BigDecimal.ZERO;
 
-        for(CartItem item : cart.getItems()){
-            OrderItem orderItem = new OrderItem();
+        for (CartItem item : cart.getItems()) {
+            Product product = item.getProduct();
+            BigDecimal effectivePrice = product.getEffectivePrice();
 
-            orderItem.setProduct(item.getProduct());
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProduct(product);
             orderItem.setQuantity(item.getQuantity());
-            orderItem.setPriceAtPurchase(item.getPriceAddition());
+            orderItem.setOriginalPrice(product.getCurrentPrice());
+            orderItem.setPriceAtPurchase(effectivePrice);
             orderItem.setOrder(order);
             orderItems.add(orderItem);
 
-            price = price.add(item.getPriceAddition().multiply(BigDecimal.valueOf(item.getQuantity())));
+            price = price.add(effectivePrice.multiply(BigDecimal.valueOf(item.getQuantity())));
         }
         order.setPrice(price);
         order.setItems(orderItems);
@@ -93,7 +96,6 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setOrderStatus(OrderStatus.CANCELLED);
-        orderRepository.save(order);
         return orderMapper.toResponse(order);
     }
 
