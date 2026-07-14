@@ -24,7 +24,7 @@ public class ProductResponse {
     public ProductResponse toResponse(Product product) {
         if(product == null)  return  null;
         return new ProductResponse(
-                product.getId(),
+                product.getProductId(),
                 product.getName(),
                 product.getDescription(),
                 product.getCurrentPrice(),

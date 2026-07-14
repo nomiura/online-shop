@@ -36,19 +36,25 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Override
     public OrderResponse createOrder(CreateOrderRequest request) {
+        log.debug("Creating order with account Id: {}",request.getAccountId());
         Account account = accountRepository.findById(request.getAccountId())
                         .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
         Cart cart = account.getCart();
         if(cart.getItems().isEmpty() ) {
+            log.warn("Order rejected: cart is empty, accountId={}", account.getId());
            throw new CartEmptyException("Cart is empty");
        }
         if(account.getAccountType() == AccountType.INDIVIDUAL){
             for(CartItem item : cart.getItems()){
                 if(item.getQuantity()>10) {
+                    log.warn("Order rejected: quantity limit exceeded, accountId={}, productId={}, qty={}",
+                            account.getId(), item.getProduct().getProductId(), item.getQuantity());
                     throw new QuantityLimitExceededException("Quantity limit exceeded");
                 }
             }
         }
+
         Order order = new Order();
         order.setCreatedBy(account);
         order.setOrderStatus(OrderStatus.CREATED);
@@ -70,10 +76,13 @@ public class OrderServiceImpl implements OrderService {
             orderItems.add(orderItem);
 
             price = price.add(effectivePrice.multiply(BigDecimal.valueOf(item.getQuantity())));
+            log.debug("Order item: productId={}, qty={}, price={}",
+                    product.getProductId(), item.getQuantity(), effectivePrice);
         }
         order.setPrice(price);
         order.setItems(orderItems);
         orderRepository.save(order);
+        log.info("Order is created with ID {}", order.getOrderId());
         cart.getItems().clear();
         return orderMapper.toResponse(order);
     }
@@ -81,9 +90,11 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     @Override
     public List<OrderResponse> findByAccountId(Long accountId) {
+        log.debug("Finding orders by account Id: {}", accountId);
        return orderRepository.findByCreatedBy_Id(accountId).stream()
                .map(orderMapper::toResponse)
                .toList();
+
     }
 
     @Transactional
@@ -92,10 +103,12 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
 
         if(!order.getOrderStatus().isCreated()) {
-            throw new InvalidOrderStatusException("Отмена из данного статуса запрещена.");
+            log.warn("Cancel rejected: orderId={}, status={}", orderId, order.getOrderStatus());
+            throw new InvalidOrderStatusException("Отмена из данного статуса запрещена." + order.getOrderStatus());
         }
 
         order.setOrderStatus(OrderStatus.CANCELLED);
+        log.info("Order is cancelled with ID {}", order.getOrderId());
         return orderMapper.toResponse(order);
     }
 
@@ -108,7 +121,7 @@ public class OrderServiceImpl implements OrderService {
             throw new InvalidOrderStatusException("Изменение комментария из данного статуса запрещено.");
         }
         order.setDescription(request.getDescription());
-
+        log.info("Order's description has been updated with ID {}", order.getOrderId());
         return orderMapper.toResponse(order);
     }
 }
