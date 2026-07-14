@@ -30,5 +30,9 @@ public class CreateProductRequest {
     @Max(value = 100, message = "Скидка не может быть больше 100")
     private Integer discountPercent;
 
+    @NotNull(message = "Количество обязательно")
+    @Min(value = 0, message = "Количество не может быть отрицательным")
+    private Integer quantityAvailable;
+
     private String image;
 }

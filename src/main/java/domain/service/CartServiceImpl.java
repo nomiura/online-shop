@@ -70,7 +70,7 @@ public class CartServiceImpl implements CartService {
         }
 
         CartItem existingItem = cart.getItems().stream()
-                .filter(items -> items.getProduct().getId().equals(productId))
+                .filter(items -> items.getProduct().getProductId().equals(productId))
                 .findFirst()
                 .orElse(null);
 
@@ -105,7 +105,7 @@ public class CartServiceImpl implements CartService {
 
         //фильтруем по productId
         CartItem item = cart.getItems().stream()
-                .filter(i -> i.getProduct().getId().equals(productId))
+                .filter(i -> i.getProduct().getProductId().equals(productId))
                 .findFirst()
                 .orElseThrow(() -> new CartItemNotFoundException("CartItem not found with product id: " + productId));
 
@@ -130,7 +130,7 @@ public class CartServiceImpl implements CartService {
 
         Cart cart = getOrCreateCart(accountId);
         CartItem item = cart.getItems().stream()
-                .filter(i -> i.getProduct().getId().equals(productId))
+                .filter(i -> i.getProduct().getProductId().equals(productId))
                 .findFirst()
                 .orElseThrow(() -> new CartItemNotFoundException("CartItem not found with product id: " + productId));
 
