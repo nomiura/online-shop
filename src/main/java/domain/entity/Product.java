@@ -37,6 +37,12 @@ public class Product {
     @Column(name = "quantity_available")
     private Integer quantityAvailable;
 
+    @Column(name = "cost_price", precision = 12, scale = 2)
+    private BigDecimal costPrice;
+
+    @Column(name = "supplier")
+    private String supplier;
+
     public BigDecimal getEffectivePrice() {
         if (discountPercent == null || discountPercent == 0) {
             return currentPrice;
