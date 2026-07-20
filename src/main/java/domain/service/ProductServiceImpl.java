@@ -8,6 +8,7 @@ import domain.dto.response.ProductResponse;
 import domain.entity.Product;
 import domain.exception.ProductNotFoundException;
 import domain.mapper.ProductMapper;
+import domain.repository.OrderRepository;
 import domain.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final OrderRepository orderRepository;
 
     @Transactional(readOnly = true)
     @Override
@@ -97,6 +99,4 @@ public class ProductServiceImpl implements ProductService {
                 .map(productMapper::toResponse)
                 .toList();
     }
-
-
 }

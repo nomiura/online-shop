@@ -170,4 +170,9 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.CONFLICT, ex);
     }
 
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ErrorResponse> handleException(InsufficientStockException ex) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex);
+    }
+
 }

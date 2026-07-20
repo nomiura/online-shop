@@ -47,4 +47,10 @@ public class OrderController {
     public ResponseEntity<OrderResponse> updateDescription(@PathVariable Long orderId, @Valid @RequestBody UpdateDescriptionRequest request) {
         return ResponseEntity.ok(orderService.updateDescription(orderId,request));
     }
+
+    @PostMapping("/{orderId}/recreate")
+    public ResponseEntity<OrderResponse> recreateOrder(@PathVariable Long orderId) {
+        OrderResponse response = orderService.recreateOrder(orderId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 }
