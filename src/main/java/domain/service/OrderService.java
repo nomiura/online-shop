@@ -13,5 +13,5 @@ public interface OrderService {
     OrderResponse createOrder(CreateOrderRequest request);
     OrderResponse cancelOrder(Long id);
     OrderResponse updateDescription(Long id, UpdateDescriptionRequest request);
-
+    OrderResponse recreateOrder(Long orderId);
 }

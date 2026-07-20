@@ -124,4 +124,68 @@ public class OrderServiceImpl implements OrderService {
         log.info("Order's description has been updated with ID {}", order.getOrderId());
         return orderMapper.toResponse(order);
     }
+
+    @Transactional
+    @Override
+    public OrderResponse recreateOrder(Long orderId) {
+         Order oldOrder = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        Account account = oldOrder.getCreatedBy();
+
+        if (account.getAccountType() == AccountType.INDIVIDUAL) {
+            for (OrderItem item : oldOrder.getItems()) {
+                if (item.getQuantity() > 10) {
+                    log.warn("Recreate rejected: quantity limit exceeded, orderId={}, productId={}, qty={}",
+                            orderId, item.getProduct().getProductId(), item.getQuantity());
+                    throw new QuantityLimitExceededException("Quantity limit exceeded");
+                }
+            }
+        }
+
+        for(OrderItem item : oldOrder.getItems()){
+            Product product = item.getProduct();
+            Integer available = product.getQuantityAvailable();
+            if(available == null || available < item.getQuantity()) {
+                log.warn("Recreate rejected: insufficient stock, orderId={}, productId={}, requested={}, available={}",
+                        orderId, product.getProductId(), item.getQuantity(), available);
+                throw new InsufficientStockException(
+                        "Insufficient stock for product: " + product.getName()
+                                + ". Requested: " + item.getQuantity() + ", available: " + available);
+            }
+        }
+        // повторить можно заказ в любом статусе — осознанно без проверки
+
+         Order newOrder = new Order();
+         newOrder.setOrderStatus(OrderStatus.CREATED);
+         newOrder.setCreatedBy(oldOrder.getCreatedBy());
+
+         List <OrderItem> newItems = new ArrayList<>();
+         BigDecimal price = BigDecimal.ZERO;
+
+
+
+         for(OrderItem oldItem : oldOrder.getItems()) {
+             Product product = oldItem.getProduct();
+             BigDecimal effectivePrice = product.getEffectivePrice();
+
+             OrderItem  newItem = new OrderItem();
+             newItem.setProduct(product);
+             newItem.setQuantity(oldItem.getQuantity());
+             newItem.setOriginalPrice(product.getCurrentPrice());
+             newItem.setPriceAtPurchase(effectivePrice);
+             newItem.setOrder(newOrder);
+             newItems.add(newItem);
+
+             price = price.add(effectivePrice.multiply(BigDecimal.valueOf(oldItem.getQuantity())));
+         }
+
+         newOrder.setItems(newItems);
+         newOrder.setPrice(price);
+
+        orderRepository.save(newOrder);
+        log.info("Order {} recreated as new order {}", orderId, newOrder.getOrderId());
+
+        return orderMapper.toResponse(newOrder);
+    }
 }
