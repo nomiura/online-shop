@@ -12,6 +12,9 @@ public class CartUpdateRequest {
     @NotNull(message = "Нужен ID товара, чтобы изменить количество")
     private Long productId;
 
+    @NotNull(message = "Нужен cartItemId товара, чтобы изменить количество")
+    private Long cartItemId;
+
     @NotNull(message = "Укажите новое количество")
     @Min(value = 0, message = "Количество не может быть отрицательным")
     @Max(value = 999, message = "Количество не может быть больше 999")
