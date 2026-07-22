@@ -26,7 +26,7 @@ public class Product {
     private BigDecimal currentPrice;
 
     @Column(nullable = false)
-    @Check(constraints = "discount_percent BETWEEN 0 AND 100")
+    //@Check(constraints = "discount_percent BETWEEN 0 AND 100")
     private Integer discountPercent = 0;
 
     private String image;

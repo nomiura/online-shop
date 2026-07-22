@@ -48,7 +48,7 @@ public class CartController {
     public ResponseEntity<CartResponseDto> addItem(
             @CurrentAccount Account currentAccount,
             @Valid @RequestBody CartAddRequest request //productId inside
-            ) {
+    ) {
 
         log.info("Adding product {} to cart for account with id: {} (quantity: {})",
                 request.getProductId(), currentAccount.getId(), request.getQuantity());
@@ -63,18 +63,17 @@ public class CartController {
     @PatchMapping("/items")
     public ResponseEntity<CartResponseDto> updateItemQuantity(
             @CurrentAccount Account currentAccount,
-            @PathVariable Long cartItemId,
             @Valid @RequestBody CartUpdateRequest request
-            ) {
+    ) {
 
         log.info("Updating cartItemId {} quantity to {} for account with id: {}",
-                cartItemId,
+                request.getCartItemId(),
                 request.getQuantity(),
                 currentAccount.getId());
 
 
         CartResponseDto response = cartService.updateItemQuantity(
-                currentAccount.getId(), cartItemId, request.getQuantity());
+                currentAccount.getId(), request.getCartItemId(), request.getQuantity());
         return ResponseEntity.ok(response);
     }
 
@@ -87,7 +86,7 @@ public class CartController {
 
         log.info("Removing cart item {} from cart for account with id: {}",
                 cartItemId, currentAccount.getId());
-        cartService.removeItem( currentAccount.getId(), cartItemId);
+        cartService.removeItem(currentAccount.getId(), cartItemId);
         return ResponseEntity.noContent().build();
     }
 
