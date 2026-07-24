@@ -1,5 +1,5 @@
 package domain.repository;
-package domain.repository;
+
 
 import domain.entity.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
