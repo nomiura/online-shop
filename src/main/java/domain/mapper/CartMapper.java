@@ -1,7 +1,7 @@
 package domain.mapper;
 
 import domain.dto.request.CartAddRequest;
-import domain.dto.response.CartItemResponse;
+import domain.dto.response.CartItemResponseDto;
 import domain.dto.response.CartResponseDto;
 import domain.entity.Cart;
 import domain.entity.CartItem;
@@ -22,7 +22,7 @@ public class CartMapper {
         CartResponseDto cartResponse = new CartResponseDto();
         cartResponse.setCartId(cart.getId());
 
-        List<CartItemResponse> cartItemMapperList = cart.getItems()
+        List<CartItemResponseDto> cartItemMapperList = cart.getItems()
                         .stream()
                         .map(cartItemMapper::toCartItemResponse)
                         .toList();

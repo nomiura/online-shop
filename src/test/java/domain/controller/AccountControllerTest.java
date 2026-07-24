@@ -1,7 +1,5 @@
 package domain.controller;
 
-import domain.OnlineShopApplication;
-import domain.controller.AccountController;
 import domain.dto.request.AccountCreateRequest;
 import domain.dto.request.AccountPatchRequest;
 import domain.dto.request.AccountUpdateRequest;
@@ -13,14 +11,11 @@ import domain.service.AccountServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.Mockito.*;

@@ -175,4 +175,13 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.CONFLICT, ex);
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex);
+    }
+
+    @ExceptionHandler(PromoCodeException.class)
+    public ResponseEntity<ErrorResponse> handleException(PromoCodeException ex) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex);
+    }
 }
