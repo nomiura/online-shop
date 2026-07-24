@@ -20,18 +20,4 @@ public class ProductResponse {
     private BigDecimal effectivePrice;
     private String image;
     private boolean inStock;
-
-    public ProductResponse toResponse(Product product) {
-        if(product == null)  return  null;
-        return new ProductResponse(
-                product.getProductId(),
-                product.getName(),
-                product.getDescription(),
-                product.getCurrentPrice(),
-                product.getDiscountPercent(),
-                product.getEffectivePrice(),
-                product.getImage(),
-                product.isInStock()
-        );
-    }
 }
