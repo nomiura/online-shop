@@ -31,9 +31,7 @@ public class CartServiceImpl implements CartService {
     @Override
     public CartResponseDto getCart(Long accountId) {
         log.info("Getting cart with account id: {}", accountId + "...");
-        Cart cart = cartRepository.findByAccountId(accountId).orElseThrow(
-                () -> new AccountNotFoundException("Account not found by account id: " + accountId)
-        );
+        Cart cart = getOrCreateCart(accountId);
         log.info("Cart with account id: {} is found", accountId + "...");
         return cartMapper.cartToResponseDto(cart);
     }

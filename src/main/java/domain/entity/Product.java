@@ -55,5 +55,4 @@ public class Product {
     public boolean isInStock() {
         return quantityAvailable != null && quantityAvailable > 0;
     }
-
 }
