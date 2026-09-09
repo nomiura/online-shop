@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,5 +36,8 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
+
+    private Instant createdAt; //нужна дата создания заказа, часто в проде используют именно Instant.class,
+    //тк он привязан к UTC и отображает часовой пояс и нет путаницы с городами, а LocalDateTime - нет
 }
 
