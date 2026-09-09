@@ -7,6 +7,8 @@ import lombok.Setter;
 import jakarta.persistence.Id;
 
 import java.math.BigDecimal;
+import java.security.Timestamp;
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,4 +25,11 @@ public class Wallet {
 
     private BigDecimal balance;
 
+    private List<Order> orders;
+
+    private BigDecimal cashback;
+
+    private Currency currency;
+
+    private Timestamp timestamp; //время создания и последнего изменения кошелька
 }
