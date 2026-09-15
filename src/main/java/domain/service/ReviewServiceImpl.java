@@ -1,12 +1,12 @@
 package domain.service;
 
+import domain.dto.request.CreateReviewRequest;
 import domain.dto.response.ReviewResponse;
 import domain.entity.Review;
 import domain.exception.ReviewNotFoundException;
 import domain.mapper.ReviewMapper;
 import domain.repository.ReviewRepository;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Optional;
 
 public class ReviewServiceImpl implements ReviewService{
@@ -16,8 +16,18 @@ public class ReviewServiceImpl implements ReviewService{
     @Transactional(readOnly = true)
     @Override
     Optional<ReviewResponse> findById(Review review, Long accountId) {
-        reviewRepository.findById(review,accountId)
+        Review review1 = reviewRepository.findById(review,accountId)
                 .orElseThrow(() -> new ReviewNotFoundException("Review not found"));
-        return reviewMapper.toResponse(review);
+        return reviewMapper.toResponse(review1);
+    }
+
+    @Override
+    public Review createReview(CreateReviewRequest request) {
+        return null;
+    }
+
+    @Override
+    public void deleteReview(Review review) {
+
     }
 }

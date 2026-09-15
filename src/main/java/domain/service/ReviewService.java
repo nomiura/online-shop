@@ -1,6 +1,7 @@
 package domain.service;
 
 
+import domain.dto.request.CreateReviewRequest;
 import domain.dto.response.ReviewResponse;
 import domain.entity.Review;
 
@@ -9,4 +10,8 @@ import java.util.Optional;
 public interface ReviewService {
 
     Optional<ReviewResponse> findById(Review review, Long accountId);
+
+    Review createReview(CreateReviewRequest request);
+
+    void deleteReview(Review review);
 }

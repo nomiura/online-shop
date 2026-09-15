@@ -8,6 +8,10 @@ import java.util.Optional;
 public class ReviewMapper {
 
     public ReviewResponse toResponse(Review review) {
-
+        return new ReviewResponse(
+                review.getRating(),
+                review.getReviewContent(),
+                review.getProduct()
+        );
     }
 }
