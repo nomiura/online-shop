@@ -50,7 +50,7 @@ public class CartController {
             @Valid @RequestBody CartAddRequest request //productId inside
     ) {
 
-        log.info("Adding product {} to cart for account with id: {} (quantity: {})",
+        log.info("Setting product's quantity {} to cart for account with id: {} (quantity: {})",
                 request.getProductId(), currentAccount.getId(), request.getQuantity());
         CartResponseDto response = cartService.addItem(
                 currentAccount.getId(),

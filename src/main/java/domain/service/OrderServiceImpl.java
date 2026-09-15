@@ -4,6 +4,7 @@ import domain.dto.request.CreateOrderRequest;
 import domain.dto.request.UpdateDescriptionRequest;
 import domain.dto.response.OrderResponse;
 import domain.entity.*;
+import domain.event.OrderCreatedEvent;
 import domain.exception.*;
 import domain.mapper.OrderMapper;
 import domain.repository.AccountRepository;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import producer.OrderEventProducer;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -25,6 +27,9 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     private final AccountRepository accountRepository;
 
+    //для кафка
+    private final OrderEventProducer eventProducer;
+
     @Transactional(readOnly = true)
     @Override
     public OrderResponse findById(Long orderId) {
@@ -36,18 +41,18 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Override
     public OrderResponse createOrder(CreateOrderRequest request) {
-        log.debug("Creating order with account Id: {}",request.getAccountId());
+        log.debug("Creating order with account Id: {}", request.getAccountId());
         Account account = accountRepository.findById(request.getAccountId())
-                        .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
         Cart cart = account.getCart();
-        if(cart.getItems().isEmpty() ) {
+        if (cart.getItems().isEmpty()) {
             log.warn("Order rejected: cart is empty, accountId={}", account.getId());
-           throw new CartEmptyException("Cart is empty");
-       }
-        if(account.getAccountType() == AccountType.INDIVIDUAL){
-            for(CartItem item : cart.getItems()){
-                if(item.getQuantity()>10) {
+            throw new CartEmptyException("Cart is empty");
+        }
+        if (account.getAccountType() == AccountType.INDIVIDUAL) {
+            for (CartItem item : cart.getItems()) {
+                if (item.getQuantity() > 10) {
                     log.warn("Order rejected: quantity limit exceeded, accountId={}, productId={}, qty={}",
                             account.getId(), item.getProduct().getProductId(), item.getQuantity());
                     throw new QuantityLimitExceededException("Quantity limit exceeded");
@@ -84,6 +89,18 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
         log.info("Order is created with ID {}", order.getOrderId());
         cart.getItems().clear();
+
+        //отправляем сообщение в кафка (не блокирует)
+        OrderCreatedEvent event = new OrderCreatedEvent(
+                order.getOrderId(),
+                order.getCreatedBy().getId(),
+                order.getPrice(),
+                order.getCreatedBy().getEmail(),
+                order.getCreatedAt()
+        );
+        eventProducer.sendOrderCreatedEvent(event); //асинхронно!
+
+        //возвращаем ответ клиенту (не ждем отправку email!)
         return orderMapper.toResponse(order);
     }
 
@@ -91,9 +108,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<OrderResponse> findByAccountId(Long accountId) {
         log.debug("Finding orders by account Id: {}", accountId);
-       return orderRepository.findByCreatedBy_Id(accountId).stream()
-               .map(orderMapper::toResponse)
-               .toList();
+        return orderRepository.findByCreatedBy_Id(accountId).stream()
+                .map(orderMapper::toResponse)
+                .toList();
 
     }
 
@@ -102,7 +119,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse cancelOrder(Long orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
 
-        if(!order.getOrderStatus().isCreated()) {
+        if (!order.getOrderStatus().isCreated()) {
             log.warn("Cancel rejected: orderId={}, status={}", orderId, order.getOrderStatus());
             throw new InvalidOrderStatusException("Отмена из данного статуса запрещена." + order.getOrderStatus());
         }
@@ -117,7 +134,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse updateDescription(Long orderId, UpdateDescriptionRequest request) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
 
-        if(order.getOrderStatus().isTerminal()) {
+        if (order.getOrderStatus().isTerminal()) {
             throw new InvalidOrderStatusException("Изменение комментария из данного статуса запрещено.");
         }
         order.setDescription(request.getDescription());
@@ -128,7 +145,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Override
     public OrderResponse recreateOrder(Long orderId) {
-         Order oldOrder = orderRepository.findById(orderId)
+        Order oldOrder = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
 
         Account account = oldOrder.getCreatedBy();
@@ -143,10 +160,10 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
-        for(OrderItem item : oldOrder.getItems()){
+        for (OrderItem item : oldOrder.getItems()) {
             Product product = item.getProduct();
             Integer available = product.getQuantityAvailable();
-            if(available == null || available < item.getQuantity()) {
+            if (available == null || available < item.getQuantity()) {
                 log.warn("Recreate rejected: insufficient stock, orderId={}, productId={}, requested={}, available={}",
                         orderId, product.getProductId(), item.getQuantity(), available);
                 throw new InsufficientStockException(
@@ -156,32 +173,31 @@ public class OrderServiceImpl implements OrderService {
         }
         // повторить можно заказ в любом статусе — осознанно без проверки
 
-         Order newOrder = new Order();
-         newOrder.setOrderStatus(OrderStatus.CREATED);
-         newOrder.setCreatedBy(oldOrder.getCreatedBy());
+        Order newOrder = new Order();
+        newOrder.setOrderStatus(OrderStatus.CREATED);
+        newOrder.setCreatedBy(oldOrder.getCreatedBy());
 
-         List <OrderItem> newItems = new ArrayList<>();
-         BigDecimal price = BigDecimal.ZERO;
+        List<OrderItem> newItems = new ArrayList<>();
+        BigDecimal price = BigDecimal.ZERO;
 
 
+        for (OrderItem oldItem : oldOrder.getItems()) {
+            Product product = oldItem.getProduct();
+            BigDecimal effectivePrice = product.getEffectivePrice();
 
-         for(OrderItem oldItem : oldOrder.getItems()) {
-             Product product = oldItem.getProduct();
-             BigDecimal effectivePrice = product.getEffectivePrice();
+            OrderItem newItem = new OrderItem();
+            newItem.setProduct(product);
+            newItem.setQuantity(oldItem.getQuantity());
+            newItem.setOriginalPrice(product.getCurrentPrice());
+            newItem.setPriceAtPurchase(effectivePrice);
+            newItem.setOrder(newOrder);
+            newItems.add(newItem);
 
-             OrderItem  newItem = new OrderItem();
-             newItem.setProduct(product);
-             newItem.setQuantity(oldItem.getQuantity());
-             newItem.setOriginalPrice(product.getCurrentPrice());
-             newItem.setPriceAtPurchase(effectivePrice);
-             newItem.setOrder(newOrder);
-             newItems.add(newItem);
+            price = price.add(effectivePrice.multiply(BigDecimal.valueOf(oldItem.getQuantity())));
+        }
 
-             price = price.add(effectivePrice.multiply(BigDecimal.valueOf(oldItem.getQuantity())));
-         }
-
-         newOrder.setItems(newItems);
-         newOrder.setPrice(price);
+        newOrder.setItems(newItems);
+        newOrder.setPrice(price);
 
         orderRepository.save(newOrder);
         log.info("Order {} recreated as new order {}", orderId, newOrder.getOrderId());

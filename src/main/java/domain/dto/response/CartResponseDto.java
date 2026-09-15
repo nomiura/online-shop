@@ -9,6 +9,7 @@ import java.util.List;
 
 @Data
 public class CartResponseDto {
+    private Long accountId;
     private Long cartId;
     private List<CartItemResponseDto> items;
     private Integer totalQuantity;
