@@ -7,10 +7,10 @@ public enum OrderStatus {
     REJECTED,
     CANCELLED,
     COMPLETED,
-    DELIVERED;
+    DELEVERED;
 
     public boolean isTerminal() {
-        return this == REJECTED || this == CANCELLED || this == DELIVERED;
+        return this == REJECTED || this == CANCELLED || this == DELEVERED;
     }
 
     public boolean isCreated() {

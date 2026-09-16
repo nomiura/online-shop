@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -57,6 +58,14 @@ public class Account {
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdDate;
+
+    @OneToMany(
+            mappedBy = "createdBy",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    private List<Order> orders = new ArrayList<>();
 
     @PrePersist
     public void onCreate() {
