@@ -32,6 +32,6 @@ public class ProductMapper {
           product.setImage(request.getImage());
           product.isInStock();
           product.setQuantityAvailable(request.getQuantityAvailable());
-        return  product;
+          return  product;
     }
 }

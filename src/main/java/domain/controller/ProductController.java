@@ -1,15 +1,18 @@
 package domain.controller;
 
 
+import domain.dto.request.CreateProductRequest;
 import domain.dto.request.PatchProductRequest;
 import domain.dto.request.UpdateProductRequest;
 import domain.dto.response.ProductResponse;
-import domain.entity.Product;
 import domain.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,6 +26,12 @@ public class ProductController {
         return productService.findById(productId);
 
     }
+
+    @GetMapping
+    public ResponseEntity<List<ProductResponse>> getAllProducts () {
+        return ResponseEntity.ok(productService.getAllProducts());
+    }
+
     @PutMapping("/{productId}")
     public ResponseEntity<ProductResponse> fullUpdateProduct(
             @PathVariable Long productId,
@@ -37,5 +46,15 @@ public class ProductController {
         return ResponseEntity.ok(productService.patchProduct(productId, request));
     }
 
+    @PostMapping("/product")
+    public ResponseEntity<ProductResponse> createProduct(@Valid @PathVariable CreateProductRequest request) {
+        ProductResponse response = productService.createProduct(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
+    @DeleteMapping("/product/{productId}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long productId) {
+        productService.deleteProduct(productId);
+        return ResponseEntity.noContent().build();
+    }
 }

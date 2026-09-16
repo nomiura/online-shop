@@ -1,12 +1,21 @@
 package domain.service;
 
 
+import domain.dto.request.CreateReviewRequest;
 import domain.dto.response.ReviewResponse;
 import domain.entity.Review;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.List;
 
 public interface ReviewService {
 
-    Optional<ReviewResponse> findById(Review review, Long accountId);
+    ReviewResponse findById(Long accountId);
+
+    List<ReviewResponse> findByProduct(Long productID);
+
+    ReviewResponse createReview(CreateReviewRequest request);
+
+    void deleteReview(Long Id);
+
 }
