@@ -1,33 +1,47 @@
 package domain.entity;
 
-
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "reviews")
-@AllArgsConstructor
-@NoArgsConstructor
+
 public class Review {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String reviewId;
-
-    @NotBlank(message = "Выставление рейтинга обязательно")
-    private String rating;
-
-    @Size(min = 0, max = 1000, message = "Отзыв не может быть длиннее 1000 символов")
-    private String reviewContent;
+    private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "product_product_id")
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
+
+    @ManyToOne
+    @JoinColumn(name = "account_id", nullable = false)
+    private Account account;
+
+    @Column(nullable = false, precision = 2, scale = 1)
+    private BigDecimal rating;
+
+    @Column(length = 1000)
+    private String reviewContent;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdDate;
+
+    @PrePersist
+    public void onCreate() {
+        createdDate = LocalDateTime.now();
+    }
 }

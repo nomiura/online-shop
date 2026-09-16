@@ -9,9 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.time.LocalDateTime;
@@ -146,32 +144,32 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleException(UserNotFoundException ex) {
+    public ResponseEntity<ErrorResponse> handleUserNotFoundException(UserNotFoundException ex) {
         return buildErrorResponse(HttpStatus.NOT_FOUND, ex);
     }
 
     @ExceptionHandler(OrderNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleException(OrderNotFoundException ex) {
+    public ResponseEntity<ErrorResponse> handleOrderNotFoundException(OrderNotFoundException ex) {
         return buildErrorResponse(HttpStatus.NOT_FOUND, ex);
     }
 
     @ExceptionHandler(InvalidOrderStatusException.class)
-    public ResponseEntity<ErrorResponse> handleException(InvalidOrderStatusException ex) {
+    public ResponseEntity<ErrorResponse> handleInvalidOrderStatusException(InvalidOrderStatusException ex) {
         return buildErrorResponse(HttpStatus.CONFLICT, ex);
     }
 
     @ExceptionHandler(QuantityLimitExceededException.class)
-    public ResponseEntity<ErrorResponse> handleException(QuantityLimitExceededException ex) {
+    public ResponseEntity<ErrorResponse> handleQuantityLimitExceededException(QuantityLimitExceededException ex) {
         return  buildErrorResponse(HttpStatus.BAD_REQUEST, ex);
     }
 
     @ExceptionHandler(CartEmptyException.class)
-    public ResponseEntity<ErrorResponse> handleException(CartEmptyException ex) {
+    public ResponseEntity<ErrorResponse> handleCartEmptyException(CartEmptyException ex) {
         return buildErrorResponse(HttpStatus.CONFLICT, ex);
     }
 
     @ExceptionHandler(InsufficientStockException.class)
-    public ResponseEntity<ErrorResponse> handleException(InsufficientStockException ex) {
+    public ResponseEntity<ErrorResponse> handleInsufficientStockException(InsufficientStockException ex) {
         return buildErrorResponse(HttpStatus.CONFLICT, ex);
     }
 
@@ -183,5 +181,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PromoCodeException.class)
     public ResponseEntity<ErrorResponse> handleException(PromoCodeException ex) {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, ex);
+    }
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleProductNotFoundException(ProductNotFoundException ex) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex);
+    }
+
+    @ExceptionHandler(ReviewNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleReviewNotFoundException(ReviewNotFoundException ex){
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex);
     }
 }

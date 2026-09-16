@@ -1,15 +1,14 @@
 package domain.dto.response;
 
 
-import domain.entity.Product;
+
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+
 
 import java.math.BigDecimal;
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 public class ProductResponse {
     private Long id;
