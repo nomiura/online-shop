@@ -20,13 +20,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
-//проверки (существует ли уже мыло?), преобразование(хеширование пароля), координация между репозиториями(если нужно сохранить данные в 3 таблицы),
-//транзакции
+//проверки (существует ли уже мыло?), преобразование(хеширование пароля),
+//координация между репозиториями(если нужно сохранить данные в 3 таблицы)
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
+    private static final String ACCOUNT_NOT_FOUND = "Account not found by id: ";
+
     private final AccountRepository accountRepository;
     private final AccountMapper accountMapper;
     private final PasswordEncoder passwordEncoder;
@@ -37,7 +39,8 @@ public class AccountServiceImpl implements AccountService {
     public AccountResponseDto getAccountById(Long id) {
         log.info("Getting account with id: {}", id + "...");
 
-        Account account = accountRepository.findById(id).orElseThrow(() -> new AccountNotFoundException("Account not found by id: " + id));
+        Account account = accountRepository.findById(id).orElseThrow(
+                () -> new AccountNotFoundException(ACCOUNT_NOT_FOUND + id));
 
         log.info("Account is found with id: {}", id);
         return accountMapper.accountToResponseDto(account);
@@ -75,7 +78,7 @@ public class AccountServiceImpl implements AccountService {
         log.info("Fully updating account with id: {}", id + "...");
 
         Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new AccountNotFoundException("Account not found by id: " + id));
+                .orElseThrow(() -> new AccountNotFoundException(ACCOUNT_NOT_FOUND + id));
 
         //проверка на уникальность мыла
         if (accountRepository.existsByEmail(request.getEmail())) {
@@ -99,15 +102,15 @@ public class AccountServiceImpl implements AccountService {
 
         String email = request.getEmail();
 
-        Account updatedAccount = accountRepository.findById(id).orElseThrow(() -> new AccountNotFoundException("Account not found by id: " + id));
+        Account updatedAccount = accountRepository.findById(id).orElseThrow(() -> new AccountNotFoundException(ACCOUNT_NOT_FOUND + id));
 
         //проверка на уникальность мыла
-        if (accountRepository.existsByEmail(request.getEmail())) {
-            throw new EmailAlreadyExistsException("Email already exists: "  + request.getEmail());
+        if (accountRepository.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException("Email already exists: "  + email);
         }
 
-        if (request.getEmail() != null) {
-            updatedAccount.setEmail(request.getEmail());
+        if (email != null) {
+            updatedAccount.setEmail(email);
         }
 
         if (request.getPassword() != null) {
@@ -127,12 +130,11 @@ public class AccountServiceImpl implements AccountService {
         return accountMapper.accountToResponseDto(savedAccount);
     }
 
-
     @Transactional
     @Override
     public void deleteAccountById(Long id) {
         if(!accountRepository.existsById(id)) {
-            throw new AccountNotFoundException("Account not found by id: " + id);
+            throw new AccountNotFoundException(ACCOUNT_NOT_FOUND + id);
         }
 
         log.info("Deleting account with id: {}", id + "...");

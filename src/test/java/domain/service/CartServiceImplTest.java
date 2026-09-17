@@ -483,7 +483,7 @@ class CartServiceImplTest {
         assertThat(actualOrder).isNotNull();
         assertThat(actualOrder.getOrderId()).isEqualTo(44L);
         assertThat(actualOrder.getOrderStatus()).isEqualTo(OrderStatus.CREATED);
-        assertThat(actualOrder.getCreatedBy().getId()).isEqualTo(ACCOUNT_ID);
+        assertThat(actualOrder.getAccount().getId()).isEqualTo(ACCOUNT_ID);
         assertThat(actualOrder.getPrice()).isEqualTo(expectedTotal);
 
         // Используем сохраненную копию для проверки
@@ -626,7 +626,7 @@ class CartServiceImplTest {
 
         Order order = new Order();
         order.setOrderId(44L);
-        order.setCreatedBy(account);
+        order.setAccount(account);
         order.setPrice(cart.getTotalPrice());
         order.setOrderStatus(OrderStatus.CREATED);
         order.setItems(new ArrayList<>());

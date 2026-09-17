@@ -1,4 +1,6 @@
 services:
+
+  # PostgreSQL
   postgres:
     image: postgres:16
     container_name: shop-postgres
@@ -24,14 +26,16 @@ services:
     depends_on:
       - postgres
 
+
+# Kafka в режиме KRaft (без ZooKeeper)
   kafka:
     image: confluentinc/cp-kafka:latest  # или apache/kafka:3.7.0 и выше
-    container_name: kafka
+    container_name: shop-kafka
     ports:
-      - "9092:9092"
+      - "9092:9092" # для подключения из приложения (с хоста)
+      - "29092:29092"     # альтернативный порт
     environment:
-    # --- ВКЛЮЧАЕМ KRaft ---
-    # Этот узел является и брокером, и контроллером
+    # --- KRaft: этот узел — и брокер, и контроллер ---
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller #Говорит Kafka, что этот узел будет одновременно хранить данные (broker)
       #и управлять метаданными кластера (controller), заменяя собой ZooKeeper.
@@ -39,7 +43,7 @@ services:
       # --- Настройка контроллера (заменяет ZooKeeper) ---
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093 #Единственный голосующий узел — он сам. Список узлов-контроллеров. Для одного узла указываем его самого.
-      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"           # Фиксированный ID для кластера. Уникальный ID кластера. Можно сгенерировать любой, например, с помощью команды kafka-storage.sh random-uuid.
+      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk" # Фиксированный ID для кластера. Уникальный ID кластера. Можно сгенерировать любой, например, с помощью команды kafka-storage.sh random-uuid.
 
       # --- Настройка листенеров ---
       KAFKA_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:29092
@@ -51,12 +55,12 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"  # Топики будут создаваться автоматически при первой отправке сообщения, без необходимости ручного создания через конфигурацию.
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"  # Топики будут создаваться автоматически при первой отправке сообщения, без необходимости ручного создания через конфигурацию
 
   # Опционально - Kafka UI для просмотра топиков
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui
+    container_name: shop-kafka-ui
     depends_on:
       - kafka
     ports:
