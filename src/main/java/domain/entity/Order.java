@@ -25,7 +25,7 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "account_id")
-    private Account createdBy;
+    private Account account;
 
     private BigDecimal price;
 

@@ -4,7 +4,6 @@ package domain.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
@@ -60,7 +59,7 @@ public class Account {
     private LocalDateTime createdDate;
 
     @OneToMany(
-            mappedBy = "createdBy",
+            mappedBy = "account",
             cascade = CascadeType.ALL,
             orphanRemoval = true,
             fetch = FetchType.LAZY

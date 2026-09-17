@@ -201,12 +201,11 @@ public class CartServiceImpl implements CartService {
         //базовая валидация
         validatePromoCode(promoCode);
 
-        if (promoCode.getMinOrderAmount() != null) {
-            if (cart.getSubtotalPrice().compareTo(promoCode.getMinOrderAmount()) < 0) {
+        if (promoCode.getMinOrderAmount() != null
+                    && cart.getSubtotalPrice().compareTo(promoCode.getMinOrderAmount()) < 0) {
                 throw new PromoCodeException("Minimum amount of order should be reached: "
                         + promoCode.getMinOrderAmount());
 
-            }
         }
 
         if (promoCode.getCode().equals(cart.getPromoCode())) {
@@ -215,7 +214,7 @@ public class CartServiceImpl implements CartService {
     }
 
     private void validatePromoCode(PromoCode promoCode) {
-        if (!promoCode.getIsActive()) throw new PromoCodeException("PromoCode is no longer valid.");
+        if (Boolean.FALSE.equals(promoCode.getIsActive())) throw new PromoCodeException("PromoCode is no longer valid.");
         LocalDateTime now = LocalDateTime.now();
 
         if (promoCode.getTimeValidFrom() != null && now.isBefore(promoCode.getTimeValidFrom())) {
@@ -227,11 +226,10 @@ public class CartServiceImpl implements CartService {
             throw new PromoCodeException("Promo code is no longer active.");
         }
 
-        if (promoCode.getUsageLimit() != null) {
-            if (promoCode.getUsedCount() >= promoCode.getUsageLimit()) {
-                throw new PromoCodeException("Promo code is already used. Limit usage: "
-                        + promoCode.getUsageLimit());
-            }
+        if (promoCode.getUsageLimit() != null
+                && (promoCode.getUsedCount() >= promoCode.getUsageLimit())) {
+            throw new PromoCodeException("Promo code is already used. Limit usage: "
+                    + promoCode.getUsageLimit());
         }
     }
 
@@ -298,7 +296,7 @@ public class CartServiceImpl implements CartService {
         }
 
         Order order = new Order();
-        order.setCreatedBy(accountRepository.findById(accountId)
+        order.setAccount(accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found by account id: " + accountId)));
         order.setOrderStatus(OrderStatus.CREATED);
 
