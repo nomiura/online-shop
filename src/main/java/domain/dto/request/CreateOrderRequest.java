@@ -17,5 +17,5 @@ public class CreateOrderRequest {
     private Long accountId;
 
     @Size(max = 500, message = "Комментарий не должен превышать 500 символов")
-    private String description;
+    private String comment;
 }

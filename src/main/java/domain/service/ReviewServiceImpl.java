@@ -1,15 +1,16 @@
 package domain.service;
 
 import domain.dto.request.CreateReviewRequest;
+import domain.dto.request.UpdateReviewRequest;
 import domain.dto.response.ReviewResponse;
 import domain.entity.Account;
 import domain.entity.Product;
 import domain.entity.Review;
-import domain.exception.AccountNotFoundException;
 import domain.exception.ProductNotFoundException;
+import domain.exception.ReviewAccessDeniedException;
+import domain.exception.ReviewAlreadyExistsException;
 import domain.exception.ReviewNotFoundException;
 import domain.mapper.ReviewMapper;
-import domain.repository.AccountRepository;
 import domain.repository.ProductRepository;
 import domain.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,19 +24,26 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ReviewServiceImpl implements ReviewService{
+public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final ReviewMapper reviewMapper;
-    private final AccountRepository accountRepository;
     private final ProductRepository productRepository;
 
 
     @Transactional(readOnly = true)
     @Override
-    public ReviewResponse findById(Long accountId) {
-        Review findableReview = reviewRepository.findById(accountId)
+    public ReviewResponse findById(Long reviewId) {
+        Review findableReview = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ReviewNotFoundException("Review not found"));
         return reviewMapper.toResponse(findableReview);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReviewResponse> findMyReviews(Account account) {
+        return reviewRepository.findByAccount_IdOrderByCreatedDateDesc(account.getId())
+                .stream()
+                .map(reviewMapper::toResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -47,29 +55,51 @@ public class ReviewServiceImpl implements ReviewService{
     }
 
     @Override
-    public ReviewResponse createReview(CreateReviewRequest request) {
-        Account account = accountRepository.findById(request.getAccountId())
-                .orElseThrow(() -> new AccountNotFoundException("Account not found"+ request.getAccountId()));
-        Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + request.getProductId()));
+    public ReviewResponse createReview(Account currentAccount, Long productId, CreateReviewRequest request) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException("Product not found" + productId));
 
-        Review newReview = reviewMapper.toEntity(request, account, product);
+        if (reviewRepository.existsByAccount_IdAndProduct_ProductId(currentAccount.getId(), product.getProductId())) {
+            throw new ReviewAlreadyExistsException(
+                    "Account with id " + currentAccount.getEmail() + " has already reviewed product with id " + product.getName());
+        }
+            Review newReview = reviewMapper.toEntity(request, currentAccount, product);
+            Review savedReview = reviewRepository.save(newReview);
 
-        Review savedReview = reviewRepository.save(newReview);
+            log.info("Review created for product={}, reviewContent={}", savedReview.getProduct(), savedReview.getReviewContent());
+            return reviewMapper.toResponse(savedReview);
 
-        log.info("Review created: product={}, reviewContent={}",savedReview.getProduct(), savedReview.getReviewContent());
+    }
+    @Transactional
+    @Override
+    public ReviewResponse updateReview(Account account, Long reviewId, UpdateReviewRequest request) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ReviewNotFoundException("Review not found: id=" + reviewId));
 
-        return reviewMapper.toResponse(savedReview);
+        if (!review.getAccount().getId().equals(account.getId())) {
+            throw new ReviewAccessDeniedException(
+                    "Account " + account.getId() + " is not the owner of review " + reviewId);
+        }
 
+        if (request.getReviewContent() != null) review.setReviewContent(request.getReviewContent());
+        if (request.getRating() != null) review.setRating(request.getRating());
+
+        log.info("Review updated: id={}, account={}", reviewId, account.getId());
+        return reviewMapper.toResponse(review);
     }
 
     @Transactional
     @Override
-    public void deleteReview(Long reviewId) {
+    public void deleteReview(Account currentAccount, Long reviewId) {
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new ReviewNotFoundException("Review not found with id: " + reviewId));
+                .orElseThrow(() -> new ReviewNotFoundException("Review not found: id=" + reviewId));
+
+        if (!review.getAccount().getId().equals(currentAccount.getId())) {
+            throw new ReviewAccessDeniedException("Account " + currentAccount.getEmail() + " is not the owner of review ");
+
+        }
 
         reviewRepository.delete(review);
-        log.info("Review  was deleted: id={}", reviewId);
+        log.info("Review deleted: account={}, review={}", currentAccount.getId(), reviewId);
     }
 }

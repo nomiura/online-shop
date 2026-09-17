@@ -2,13 +2,16 @@ package domain.dto.response;
 
 
 
+import domain.entity.ReviewStats;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 
 import java.math.BigDecimal;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 public class ProductResponse {
     private Long id;
@@ -19,4 +22,5 @@ public class ProductResponse {
     private BigDecimal effectivePrice;
     private String image;
     private boolean inStock;
+    private ReviewStats reviewStats;
 }
