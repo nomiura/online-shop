@@ -15,8 +15,11 @@ public class EmailConsumer {
 
     private final EmailService emailService;
 
+    //@KafkaListener - spring подписывает этот метод на топик, как в топике появляется новое сообщение --
+    //метод вызывается автоматически
     @KafkaListener(topics = "order-created", groupId = "shop-group")
-    public void handleOrderCreated(OrderCreatedEvent event) {
+    public void handleOrderCreated(OrderCreatedEvent event) { //OrderCreatedEvent event) спринг сам десериализует
+        //json обратно в объект через JsonDeserializer
         log.info("Получаю сообщение из KafkaL: заказ{}", event.getOrderId());
 
         try {

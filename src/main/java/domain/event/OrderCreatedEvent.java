@@ -1,16 +1,19 @@
 package domain.event;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+
+//простой POJO (Plain Old Java Object) - посылка, которую кидаем в kafka
+@Getter
+@Setter
+@RequiredArgsConstructor
+@NoArgsConstructor //нужен для десериализации (jackson создает объект без аргументов, потом заполняет поле)
+@AllArgsConstructor //удобно создавать объект одной строкой
 public class OrderCreatedEvent {
     private Long orderId;
     private Long accountId;
