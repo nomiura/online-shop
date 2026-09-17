@@ -1,8 +1,11 @@
 package domain.controller;
 
 
+import domain.annotation.CurrentAccount;
 import domain.dto.request.CreateReviewRequest;
+import domain.dto.request.UpdateReviewRequest;
 import domain.dto.response.ReviewResponse;
+import domain.entity.Account;
 import domain.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,30 +17,36 @@ import java.util.List;
 
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/reviews")
+@RequiredArgsConstructor
 public class ReviewController {
+
     private final ReviewService reviewService;
 
+    @GetMapping("/me")
+    public ResponseEntity<List<ReviewResponse>> getMyReviews(@CurrentAccount Account account) {
+        return ResponseEntity.ok(reviewService.findMyReviews(account));
+    }
+
     @GetMapping("/{reviewId}")
-    public ResponseEntity<ReviewResponse> getReviewsByAccount(@PathVariable Long reviewId) {
+    public ResponseEntity<ReviewResponse> getReview(@PathVariable Long reviewId) {
         return ResponseEntity.ok(reviewService.findById(reviewId));
     }
 
-    @GetMapping("/product/{productId}")
-    public ResponseEntity<List<ReviewResponse>> getReviewByProduct(@PathVariable Long productId) {
-        return ResponseEntity.ok(reviewService.findByProduct(productId));
-    }
-
-    @PostMapping("/review")
-    public ResponseEntity<ReviewResponse> createReview(@Valid @RequestBody CreateReviewRequest reviewRequest) {
-        ReviewResponse created = reviewService.createReview(reviewRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    @PutMapping("/{reviewId}")
+    public ResponseEntity<ReviewResponse> updateReview(
+            @CurrentAccount Account account,
+            @PathVariable Long reviewId,
+            @Valid @RequestBody UpdateReviewRequest request) {
+        return ResponseEntity.ok(reviewService.updateReview(account, reviewId, request));
     }
 
     @DeleteMapping("/{reviewId}")
-    public ResponseEntity<Void> deleteReview (@PathVariable Long reviewId) {
-        reviewService.deleteReview(reviewId);
+    public ResponseEntity<Void> deleteReview(
+            @CurrentAccount Account account,
+            @PathVariable Long reviewId) {
+        reviewService.deleteReview(account, reviewId);
         return ResponseEntity.noContent().build();
     }
+
 }

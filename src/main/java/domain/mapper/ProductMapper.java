@@ -3,13 +3,14 @@ package domain.mapper;
 import domain.dto.request.CreateProductRequest;
 import domain.dto.response.ProductResponse;
 import domain.entity.Product;
+import domain.entity.ReviewStats;
 import org.springframework.stereotype.Component;
 
 
 @Component
 public class ProductMapper {
 
-    public ProductResponse toResponse(Product product) {
+    public ProductResponse toResponse(Product product, ReviewStats stats) {
         if(product == null) return null;
         return new ProductResponse(product.getProductId(),
                 product.getName(),
@@ -18,7 +19,8 @@ public class ProductMapper {
                 product.getDiscountPercent(),
                 product.getEffectivePrice(),
                 product.getImage(),
-                product.isInStock()
+                product.isInStock(),
+                stats
         );
     }
 

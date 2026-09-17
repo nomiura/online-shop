@@ -6,16 +6,20 @@ import domain.dto.request.PatchProductRequest;
 import domain.dto.request.UpdateProductRequest;
 import domain.dto.response.ProductResponse;
 import domain.entity.Product;
+import domain.entity.ReviewStats;
 import domain.exception.ProductNotFoundException;
+import domain.interfaces.ProductReviewStatsProjection;
 import domain.mapper.ProductMapper;
-import domain.repository.OrderRepository;
 import domain.repository.ProductRepository;
+import domain.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -23,14 +27,16 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
-    private final OrderRepository orderRepository;
+    private final ReviewRepository reviewRepository;
 
     @Transactional(readOnly = true)
     @Override
     public ProductResponse findById(Long productId) {
         Product product  =  productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + productId));
-        return productMapper.toResponse(product);
+
+        ReviewStats stats = new ReviewStats(reviewRepository.countByProduct_ProductId(productId), reviewRepository.findAverageRatingByProductId(productId));
+        return productMapper.toResponse(product, stats);
     }
 
     @Transactional
@@ -38,8 +44,10 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse createProduct(CreateProductRequest request) {
         Product product = productMapper.toEntity(request);
         Product saved = productRepository.save(product);
+
         log.info("Product created: id={}, name={}", saved.getProductId(), saved.getName());
-        return productMapper.toResponse(saved);
+
+        return productMapper.toResponse(saved, ReviewStats.empty());
     }
 
     @Transactional(readOnly = true)
@@ -68,8 +76,11 @@ public class ProductServiceImpl implements ProductService {
         product.setSupplier(request.getSupplier());
         product.setImage(request.getImage());
 
+        ReviewStats stats = new ReviewStats(reviewRepository.countByProduct_ProductId(productId), reviewRepository.findAverageRatingByProductId(productId));
+
         log.info("Product fully updated: id={}", productId);
-        return productMapper.toResponse(product);
+
+        return productMapper.toResponse(product, stats);
     }
 
     @Transactional
@@ -88,15 +99,57 @@ public class ProductServiceImpl implements ProductService {
         if (request.getSupplier() != null) product.setSupplier(request.getSupplier());
         if (request.getImage() != null) product.setImage(request.getImage());
 
+        ReviewStats stats = new ReviewStats(reviewRepository.countByProduct_ProductId(productId), reviewRepository.findAverageRatingByProductId(productId));
+
         log.info("Product patched: id={}", productId);
-        return productMapper.toResponse(product);
+
+        return productMapper.toResponse(product, stats);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public ProductResponse getProduct(Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(
+                        "Product not found: id=" + productId));
+        ReviewStats stats = buildReviewStats(productId);
+
+        return productMapper.toResponse(product, stats);
+    }
+
+    private ReviewStats buildReviewStats(Long productId) {
+        long count = reviewRepository.countByProduct_ProductId(productId);
+        Double averageRating = reviewRepository.findAverageRatingByProductId(productId);
+        if (count == 0) {
+            return new ReviewStats(0L, null);
+        }
+
+        return new ReviewStats(count, averageRating);
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<ProductResponse> getAllProducts() {
-        return productRepository.findAll().stream()
-                .map(productMapper::toResponse)
+        List<Product> products = productRepository.findAll();
+        if (products.isEmpty()) return List.of();
+
+        List<Long> ids = products.stream()
+                .map(Product::getProductId)
+                .toList();
+
+        Map<Long, ReviewStats> statsByProductId = reviewRepository.findStatsByProductIds(ids)
+                .stream()
+                .collect(Collectors.toMap(
+                        ProductReviewStatsProjection::getProductId,
+                        row -> new ReviewStats(
+                                row.getCount(),
+                                row.getAverageRating()
+                        )
+                ));
+
+        return products.stream()
+                .map(p -> productMapper.toResponse(p, statsByProductId.getOrDefault
+                        (p.getProductId(), ReviewStats.empty())))
                 .toList();
     }
 }
