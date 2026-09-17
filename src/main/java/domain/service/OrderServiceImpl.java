@@ -61,7 +61,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Order order = new Order();
-        order.setCreatedBy(account);
+        order.setAccount(account);
         order.setOrderStatus(OrderStatus.CREATED);
         order.setDescription(request.getDescription());
 
@@ -93,9 +93,9 @@ public class OrderServiceImpl implements OrderService {
         //отправляем сообщение в кафка (не блокирует)
         OrderCreatedEvent event = new OrderCreatedEvent(
                 order.getOrderId(),
-                order.getCreatedBy().getId(),
+                order.getAccount().getId(),
                 order.getPrice(),
-                order.getCreatedBy().getEmail(),
+                order.getAccount().getEmail(),
                 order.getCreatedAt()
         );
         eventProducer.sendOrderCreatedEvent(event); //асинхронно!
@@ -148,7 +148,7 @@ public class OrderServiceImpl implements OrderService {
         Order oldOrder = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
 
-        Account account = oldOrder.getCreatedBy();
+        Account account = oldOrder.getAccount();
 
         if (account.getAccountType() == AccountType.INDIVIDUAL) {
             for (OrderItem item : oldOrder.getItems()) {
@@ -175,7 +175,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order newOrder = new Order();
         newOrder.setOrderStatus(OrderStatus.CREATED);
-        newOrder.setCreatedBy(oldOrder.getCreatedBy());
+        newOrder.setAccount(oldOrder.getAccount());
 
         List<OrderItem> newItems = new ArrayList<>();
         BigDecimal price = BigDecimal.ZERO;

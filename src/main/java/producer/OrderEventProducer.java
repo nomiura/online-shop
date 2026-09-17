@@ -20,6 +20,7 @@ public class OrderEventProducer {
         //отправляем в топик "order-created"
         //ключ - id заказа(чтобы заказ с одним id попадали в одну партицию)
         //значение - само сообщение/событие (автоматически конвертируется в json)
+        //topic, Key: orderId, Value: OrderCreatedEvent (JSON)
         kafkaTemplate.send(TOPIC, String.valueOf(event.getOrderId()), event);
 
         log.info("Сообщение отправлено");
