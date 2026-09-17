@@ -1,4 +1,4 @@
-package ru.test.domain.service;
+package test.domain.service;
 
 import domain.dto.request.CreateUserRequest;
 import domain.dto.request.UpdateUserRequest;

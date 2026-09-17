@@ -179,7 +179,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(PromoCodeException.class)
-    public ResponseEntity<ErrorResponse> handleException(PromoCodeException ex) {
+    public ResponseEntity<ErrorResponse> handlePromoCodeException(PromoCodeException ex) {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, ex);
     }
 
@@ -189,7 +189,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ReviewNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleReviewNotFoundException(ReviewNotFoundException ex){
+    public ResponseEntity<ErrorResponse> handleReviewNotFoundException(ReviewNotFoundException ex) {
         return buildErrorResponse(HttpStatus.NOT_FOUND, ex);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex);
     }
 }
