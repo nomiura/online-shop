@@ -26,6 +26,7 @@ public class CartServiceImpl implements CartService {
     private final ProductRepository productRepository;
     private final PromoCodeRepository promoCodeRepository;
     private final OrderRepository orderRepository;
+    private final OrderService orderService;
 
     @Transactional(readOnly = true)
     @Override
@@ -282,45 +283,5 @@ public class CartServiceImpl implements CartService {
 
         Cart savedCart = cartRepository.save(cart);
         return cartMapper.cartToResponseDto(savedCart);
-    }
-
-    @Transactional
-    @Override
-    public Order convertCartToOrder(Long accountId) {
-        Cart cart = cartRepository.findByAccountId(accountId).orElseThrow(
-                () -> new AccountNotFoundException("Account not found by account id: " + accountId)
-        );
-
-        if (cart.getItems().isEmpty()) {
-            throw new CartEmptyException("Cannot convert empty cart to order.");
-        }
-
-        Order order = new Order();
-        order.setAccount(accountRepository.findById(accountId)
-                .orElseThrow(() -> new AccountNotFoundException("Account not found by account id: " + accountId)));
-        order.setOrderStatus(OrderStatus.CREATED);
-
-        // преобразуем эл-ы корзины в эл-ы заказа
-        List<OrderItem> orderItems = cart.getItems().stream()
-                .map(cartItem -> {
-                        OrderItem item = new OrderItem();
-                        item.setOrder(order);
-                        item.setProduct(cartItem.getProduct());
-                        item.setQuantity(cartItem.getQuantity());
-                        item.setPriceAtPurchase(cartItem.getProduct().getCurrentPrice()); //фикс цены на момент заказа
-                        return item;
-                })
-                .toList();
-        order.setItems(orderItems);
-
-        BigDecimal totalPrice = cart.getTotalPrice();
-        order.setPrice(totalPrice);
-
-        Order savedOrder = orderRepository.save(order);
-
-        cart.getItems().clear();
-        cartRepository.save(cart);
-
-        return savedOrder;
     }
 }

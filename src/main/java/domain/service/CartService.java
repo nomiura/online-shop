@@ -13,5 +13,4 @@ public interface CartService {
 
     CartResponseDto applyPromoCode(Long accountId, String promoCode);
     CartResponseDto removePromoCode(Long accountId);
-    Order convertCartToOrder(Long accountId);
 }

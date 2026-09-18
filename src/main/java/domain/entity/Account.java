@@ -28,20 +28,20 @@ public class Account {
     private User user;
 
     @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
-    private Wallet wallet; //кошелек принадлежит акку
+    private Wallet wallet;
 
     @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
-    private Cart cart; //корзина принадлежит акку
+    private Cart cart;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "account_id") //внешний ключ в таблице address
     private List<Address> addresses;
 
     @Column(nullable = false, unique = true)
-    private String email; // уникальный
+    private String email;
 
     @Column(nullable = false, unique = true)
-    private String phone; // уникальный
+    private String phone;
 
     @Column(nullable = false)
     private String password;
