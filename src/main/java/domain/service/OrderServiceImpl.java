@@ -5,6 +5,7 @@ import domain.dto.request.UpdateDescriptionRequest;
 import domain.dto.response.OrderResponse;
 import domain.entity.*;
 import domain.event.OrderCreatedEvent;
+import domain.event.OrderDeleveredEvent;
 import domain.exception.*;
 import domain.mapper.OrderMapper;
 import domain.repository.AccountRepository;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import producer.OrderEventProducer;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -203,5 +205,31 @@ public class OrderServiceImpl implements OrderService {
         log.info("Order {} recreated as new order {}", orderId, newOrder.getOrderId());
 
         return orderMapper.toResponse(newOrder);
+    }
+
+    @Transactional
+    @Override
+    public OrderResponse markAsDelevered(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        if (order.getOrderStatus() == OrderStatus.DELEVERED) {
+            orderMapper.toResponse(order);
+        }
+
+        if (order.getOrderStatus() != OrderStatus.PAID) {
+            throw new InvalidOrderStatusException("Order status is not valid");
+        }
+        order.setOrderStatus(OrderStatus.DELEVERED);
+        log.info("Order marked as delevered: id={}", orderId);
+        order.setDeleveredAt(Instant.now());
+
+        OrderDeleveredEvent event = new OrderDeleveredEvent
+                (order.getOrderId(),
+                order.getAccount().getPhone(),
+                order.getDeleveredAt()
+        );
+        eventProducer.sendOrderDeliveredEvent(event);
+        return orderMapper.toResponse(order);
     }
 }

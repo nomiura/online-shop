@@ -1,6 +1,6 @@
 package consumer;
 
-import domain.entity.Order;
+
 import domain.event.OrderCreatedEvent;
 import domain.service.EmailService;
 import lombok.RequiredArgsConstructor;
