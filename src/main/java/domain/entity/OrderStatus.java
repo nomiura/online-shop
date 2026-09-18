@@ -16,4 +16,8 @@ public enum OrderStatus {
     public boolean isCreated() {
         return this == CREATED || this == APPROVED;
     }
+
+    public boolean canBeDelevered() {
+        return this == PAID;
+    }
 }

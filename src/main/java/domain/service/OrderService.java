@@ -14,4 +14,5 @@ public interface OrderService {
     OrderResponse cancelOrder(Long id);
     OrderResponse updateDescription(Long id, UpdateDescriptionRequest request);
     OrderResponse recreateOrder(Long orderId);
+    OrderResponse markAsDelevered(Long orderId);
 }
