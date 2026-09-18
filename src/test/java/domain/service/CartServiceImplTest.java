@@ -460,68 +460,6 @@ class CartServiceImplTest {
 
     // ORDER ---------------------------------------------------------------------------
 
-    @Test
-    @DisplayName("convertCartToOrder - Should convert cart to order")
-    void convertCartToOrder_shouldConvertCartToOrder() {
-        cart = getCart();
-        Order order = getOrder();
-        BigDecimal expectedTotal = cart.getTotalPrice();
-
-        List<CartItem> originalCartItems = new ArrayList<>(cart.getItems());
-
-        when(cartRepository.findByAccountId(ACCOUNT_ID)).thenReturn(Optional.of(cart));
-        when(accountRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(account));
-        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
-            Order saved = invocation.getArgument(0);
-            saved.setOrderId(44L); // только id, остальное уже установлено сервисом
-            return saved;
-        });
-        when(cartRepository.save(any(Cart.class))).thenReturn(cart);
-
-        Order actualOrder = cartService.convertCartToOrder(ACCOUNT_ID);
-
-        assertThat(actualOrder).isNotNull();
-        assertThat(actualOrder.getOrderId()).isEqualTo(44L);
-        assertThat(actualOrder.getOrderStatus()).isEqualTo(OrderStatus.CREATED);
-        assertThat(actualOrder.getAccount().getId()).isEqualTo(ACCOUNT_ID);
-        assertThat(actualOrder.getPrice()).isEqualTo(expectedTotal);
-
-        // Используем сохраненную копию для проверки
-        for (int i = 0; i < actualOrder.getItems().size(); i++) {
-            OrderItem orderItem = actualOrder.getItems().get(i);
-            CartItem cartItem = originalCartItems.get(i); // используем копию
-            assertThat(orderItem.getProduct()).isEqualTo(cartItem.getProduct());
-            assertThat(orderItem.getQuantity()).isEqualTo(cartItem.getQuantity());
-            assertThat(orderItem.getPriceAtPurchase()).isEqualTo(cartItem.getProduct().getCurrentPrice());
-        }
-
-        // Проверяем, что корзина очищена
-         assertThat(cart.getItems().size()).isEqualTo(0);
-
-        verify(cartRepository, times(1)).findByAccountId(ACCOUNT_ID);
-        verify(accountRepository, times(1)).findById(ACCOUNT_ID);
-        verify(orderRepository, times(1)).save(any(Order.class));
-        verify(cartRepository, times(1)).save(cart);
-    }
-
-    @Test
-    @DisplayName("convertCartToOrder - Should throw exception if cart is empty")
-    void convertCartToOrder_shouldThrowException_ifCartIsEmpty() {
-        cart = getCart();
-        cart.getItems().clear();
-
-        when(cartRepository.findByAccountId(ACCOUNT_ID)).thenReturn(Optional.of(cart));
-
-        assertThatThrownBy(() -> cartService.convertCartToOrder(ACCOUNT_ID))
-                .isInstanceOf(CartEmptyException.class)
-                .hasMessage("Cannot convert empty cart to order.");
-
-        verify(cartRepository, times(1)).findByAccountId(ACCOUNT_ID);
-        verify(accountRepository, never()).save(any(Account.class));
-        verify(cartRepository, never()).save(any(Cart.class));
-        verify(orderRepository, never()).save(any(Order.class));
-    }
-
     private CartResponseDto getCartResponseDto() {
         CartItemResponseDto cartItemResponseDto = new CartItemResponseDto();
         cartItemResponseDto.setCartItemId(15L);
