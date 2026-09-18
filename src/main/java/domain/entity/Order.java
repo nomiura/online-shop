@@ -39,5 +39,7 @@ public class Order {
 
     private Instant createdAt; //нужна дата создания заказа, часто в проде используют именно Instant.class,
     //тк он привязан к UTC и отображает часовой пояс и нет путаницы с городами, а LocalDateTime - нет
+
+    private Instant deleveredAt;
 }
 
