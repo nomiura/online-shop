@@ -14,4 +14,5 @@ public interface ProductService {
     ProductResponse fullUpdateProduct(Long productId, UpdateProductRequest request);
     List<ProductResponse> getAllProducts();
 
+
 }
