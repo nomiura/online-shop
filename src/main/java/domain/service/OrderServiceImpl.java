@@ -6,6 +6,7 @@ import domain.dto.response.OrderResponse;
 import domain.entity.*;
 import domain.event.OrderCreatedEvent;
 import domain.event.OrderDeleveredEvent;
+import domain.event.ProductOutOfStockEvent;
 import domain.exception.*;
 import domain.mapper.OrderMapper;
 import domain.repository.AccountRepository;
@@ -65,13 +66,28 @@ public class OrderServiceImpl implements OrderService {
         Order order = new Order();
         order.setAccount(account);
         order.setOrderStatus(OrderStatus.CREATED);
-        order.setDescription(request.getDescription());
+        order.setDescription(request.getComment());
 
         List<OrderItem> orderItems = new ArrayList<>();
         BigDecimal price = BigDecimal.ZERO;
 
         for (CartItem item : cart.getItems()) {
             Product product = item.getProduct();
+            if(product.getQuantityAvailable() < item.getQuantity()) {
+                throw new InsufficientStockException("Недостаточно товара: " + product.getName()
+                        + ". Доступно: " + product.getQuantityAvailable()
+                        + ", запрошено: " + item.getQuantity());
+            } else {
+                product.setQuantityAvailable(product.getQuantityAvailable() - item.getQuantity());
+            }
+            if (product.getQuantityAvailable() == 0) {
+                ProductOutOfStockEvent event = new ProductOutOfStockEvent(
+                        product.getProductId(),
+                        product.getName(),
+                        Instant.now(),
+                        item.getQuantity());
+                eventProducer.sendQuantityEvent(event);
+            }
             BigDecimal effectivePrice = product.getEffectivePrice();
 
             OrderItem orderItem = new OrderItem();
@@ -98,6 +114,7 @@ public class OrderServiceImpl implements OrderService {
                 order.getAccount().getId(),
                 order.getPrice(),
                 order.getAccount().getEmail(),
+                order.getAccount().getPhone(),
                 order.getCreatedAt()
         );
         eventProducer.sendOrderCreatedEvent(event); //асинхронно!

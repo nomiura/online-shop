@@ -18,4 +18,5 @@ public class CreateOrderRequest {
 
     @Size(max = 500, message = "Комментарий не должен превышать 500 символов")
     private String comment;
+
 }
