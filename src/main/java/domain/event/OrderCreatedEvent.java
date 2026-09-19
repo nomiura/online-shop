@@ -5,7 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDateTime;
+
 
 
 //простой POJO (Plain Old Java Object) - посылка, которую кидаем в kafka
@@ -19,5 +19,6 @@ public class OrderCreatedEvent {
     private Long accountId;
     private BigDecimal totalAmount;
     private String accountEmail;
+    private String phone;
     private Instant createdAt;
 }
