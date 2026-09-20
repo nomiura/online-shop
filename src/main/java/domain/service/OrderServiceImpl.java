@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import producer.OrderEventProducer;
+import domain.producer.OrderEventProducer;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -127,7 +127,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<OrderResponse> findByAccountId(Long accountId) {
         log.debug("Finding orders by account Id: {}", accountId);
-        return orderRepository.findByCreatedBy_Id(accountId).stream()
+        return orderRepository.findByAccountId(accountId).stream()
                 .map(orderMapper::toResponse)
                 .toList();
 
