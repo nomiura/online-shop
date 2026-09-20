@@ -1,4 +1,4 @@
-package producer;
+package domain.producer;
 
 import domain.event.OrderCreatedEvent;
 import domain.event.OrderDeleveredEvent;

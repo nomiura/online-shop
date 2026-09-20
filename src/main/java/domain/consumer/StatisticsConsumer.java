@@ -1,4 +1,4 @@
-package consumer;
+package domain.consumer;
 
 import domain.event.OrderCreatedEvent;
 import domain.service.StatisticsService;

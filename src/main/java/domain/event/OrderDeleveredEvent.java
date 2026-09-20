@@ -8,7 +8,6 @@ import java.time.Instant;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor
 public class OrderDeleveredEvent {
     private Long orderId;
     private String phone;

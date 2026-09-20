@@ -28,9 +28,6 @@ public class Account {
     private User user;
 
     @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
-    private Wallet wallet;
-
-    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
     private Cart cart;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)

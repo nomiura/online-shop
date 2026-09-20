@@ -3,6 +3,8 @@ package domain.service;
 
 import domain.dto.request.*;
 import domain.dto.response.ProductResponse;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 
@@ -12,6 +14,10 @@ public interface ProductService {
     void deleteProduct(Long productId);
     ProductResponse patchProduct(Long productId, PatchProductRequest request);
     ProductResponse fullUpdateProduct(Long productId, UpdateProductRequest request);
+
+    @Transactional(readOnly = true)
+    ProductResponse getProduct(Long productId);
+
     List<ProductResponse> getAllProducts();
 
 
