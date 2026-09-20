@@ -5,10 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @AllArgsConstructor
-public class ReviewStats {
+public class ReviewStats implements Serializable {
     private long count;
     private Double averageRating;
 

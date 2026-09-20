@@ -9,13 +9,13 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface OrderRepository extends JpaRepository<Order,Long> {
-    List<Order> findByCreatedBy_Id(Long accountId);
+    List<Order> findByAccountId(Long accountId);
 
     @Query("""
        SELECT CASE WHEN COUNT(oi) > 0 THEN true ELSE false END
        FROM Order o
        JOIN o.items oi
-       WHERE o.createdBy.id = :accountId
+       WHERE o.account.id = :accountId
          AND oi.product.productId = :productId
          AND o.orderStatus IN :statuses
        """)

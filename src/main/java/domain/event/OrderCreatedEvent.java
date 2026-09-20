@@ -11,7 +11,6 @@ import java.time.Instant;
 //простой POJO (Plain Old Java Object) - посылка, которую кидаем в kafka
 @Getter
 @Setter
-@RequiredArgsConstructor
 @NoArgsConstructor //нужен для десериализации (jackson создает объект без аргументов, потом заполняет поле)
 @AllArgsConstructor //удобно создавать объект одной строкой
 public class OrderCreatedEvent {
