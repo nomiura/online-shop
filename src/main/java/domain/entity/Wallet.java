@@ -16,7 +16,12 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "wallets")
+@Table(name = "wallets",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_wallet_account", //uk - unique key - уникальное ограничение по таблице wallets по колонке акк
+                columnNames = "account_id"
+        )
+)
 public class Wallet {
 
     @Id
@@ -29,8 +34,13 @@ public class Wallet {
     private UUID id;
 
     // @OneToOne(cascade = CascadeType.PERSIST)
+    // Связь 1:1 на уровне данных — уникальный индекс выше гарантирует,
+    // что два кошелька не привяжутся к одному аккаунту.
+    // В Java это просто UUID, без @OneToOne.
+    //UniqueConstraint в @Table — это то, что превращает «просто колонку» в настоящую связь 1:1 на уровне БД.
+    // Без него можно случайно создать два кошелька на один аккаунт
     @Column(name = "account_id", nullable = false)
-    private UUID accountId;
+    private Long accountId;
 
     //текущ баланс, денормализация для быстрого чтения
     @Column(nullable = false, precision = 19, scale = 4)
