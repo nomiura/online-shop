@@ -15,12 +15,15 @@ import java.util.UUID;
 
 public interface WalletRepository extends JpaRepository<Wallet, UUID> {
 
+    Optional<Wallet> findByAccountId(@Param("id") Long id);
+
+
     @Lock(LockModeType.PESSIMISTIC_WRITE) // пессимистичная блокировка, читать можно
     //SELECT * FROM wallet WHERE id = ? FOR UPDATE
     //Строка блокируется до конца транзакции. Другие транзакции, которые попытаются взять эту же строку
     //через PESSIMISTIC_WRITE, будут ждать, пока первая не закоммитится или не откатится
     @Query("SELECT w FROM Wallet w WHERE w.id =:id") //jpql-запрос
-    Optional<Wallet> findByIdForUpdate(@Param("id") UUID id);
+    Optional<Wallet> findByAccountIdForUpdate(@Param("id") Long id);
 
     //conditional update ч/з @Modifying - атомарный UPDATE - БД гарантирует атомарность,
     //compare-and-set на уровне БД
