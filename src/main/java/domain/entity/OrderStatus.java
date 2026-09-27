@@ -18,6 +18,6 @@ public enum OrderStatus {
     }
 
     public boolean canBeDelevered() {
-        return this == PAID;
+        return this == PAID || this == COMPLETED;
     }
 }
