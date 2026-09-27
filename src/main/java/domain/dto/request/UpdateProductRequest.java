@@ -14,25 +14,22 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class UpdateProductRequest {
 
-    @NotBlank(message = "Название товара не может быть пустым")
     private String name;
 
-    @Size(max = 1000, message = "Описание не длиннее 1000 символов")
+    @Size(max = 1000)
     private String description;
 
-    @NotNull(message = "Цена обязательна")
-    @DecimalMin(value = "0.00", message = "Цена не может быть отрицательной")
+    @DecimalMin(value = "0.00")
     @Digits(integer = 10, fraction = 2)
     private BigDecimal currentPrice;
 
-    @NotNull @Min(0) @Max(100)
+    @Min(0) @Max(100)
     private Integer discountPercent;
 
-    @NotNull(message = "Количество обязательно")
-    @Min(value = 0)
+    @Min(0)
     private Integer quantityAvailable;
 
-    @DecimalMin(value = "0.00", message = "Закупочная цена не может быть отрицательной")
+    @DecimalMin(value = "0.00")
     @Digits(integer = 10, fraction = 2)
     private BigDecimal costPrice;
 

@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body style="font-family: Arial, sans-serif;">
+<h2>Заказ #<span th:text="${orderId}"></span></h2>
+<p>Здравствуйте!</p>
+<p>Ваш заказ успешно оформлен!</p>
+<p>Сумма заказа: <span th:text="${#numbers.formatDecimal(totalAmount, 1, 2)}"></span></p>
+<p>Дата заказа: <span th:text="${orderDate}"></span> </p>
+<p>Спасибо, что выбираете нас!<br>Команда магазина</p>
+</body>
+</html>

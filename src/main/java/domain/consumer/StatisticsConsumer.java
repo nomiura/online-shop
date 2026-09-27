@@ -13,8 +13,9 @@ import org.springframework.stereotype.Component;
 public class StatisticsConsumer {
 
     private final StatisticsService statisticsService;
+    private static final String CREATED_TOPIC = "order-created";
 
-    @KafkaListener(topics = "order-created", groupId = "statistics-group") //groupId = "statistics-group" —
+    @KafkaListener(topics = CREATED_TOPIC, groupId = "statistics-group") //groupId = "statistics-group" —
     // отличается от shop-group у EmailConsumer. Поэтому оба получат сообщение.
     public void handleOrderForStatistics(OrderCreatedEvent event) {
         log.info("Обновляем статистику для заказа {}", event.getOrderId());

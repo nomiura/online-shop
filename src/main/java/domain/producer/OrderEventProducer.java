@@ -42,5 +42,7 @@ public class OrderEventProducer {
         log.info("Отправляю сообщение о количестве товара в Kafka: товар{}",event.getProductId());
 
         kafkaTemplate.send(OUT_OF_STOCK_TOPIC, String.valueOf(event.getProductId()), event);
+
+        log.info("Сообщение о товаре, который кончился, отправлено");
     }
 }

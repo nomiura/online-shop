@@ -70,6 +70,7 @@ public class ReviewServiceImpl implements ReviewService {
             return reviewMapper.toResponse(savedReview);
 
     }
+
     @Transactional
     @Override
     public ReviewResponse updateReview(Account account, Long reviewId, UpdateReviewRequest request) {
