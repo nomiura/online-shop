@@ -4,6 +4,7 @@ import domain.entity.Currency;
 import domain.entity.TransactionType;
 import domain.entity.Wallet;
 import domain.entity.WalletTransaction;
+import domain.exception.WalletNotFoundException;
 import domain.repository.WalletRepository;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,8 +25,8 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public Wallet createWallet(Long accountId, Currency currency) {
-        Wallet wallet = walletRepository.findByAccountId(account.getId())
-                .orElseThrow(() -> new WalletNotFoundException(account.getId()));
+        Wallet wallet = walletRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new WalletNotFoundException(accountId));
 
         return null;
     }

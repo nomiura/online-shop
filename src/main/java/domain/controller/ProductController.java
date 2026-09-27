@@ -2,8 +2,8 @@ package domain.controller;
 
 
 import domain.dto.request.CreateProductRequest;
-import domain.dto.request.PatchProductRequest;
 import domain.dto.request.UpdateProductRequest;
+import domain.dto.request.FullUpdateProductRequest;
 import domain.dto.response.ProductResponse;
 import domain.service.ProductService;
 import jakarta.validation.Valid;
@@ -35,15 +35,15 @@ public class ProductController {
     @PutMapping("/{productId}")
     public ResponseEntity<ProductResponse> fullUpdateProduct(
             @PathVariable Long productId,
-            @Valid @RequestBody UpdateProductRequest request) {
+            @Valid @RequestBody FullUpdateProductRequest request) {
         return ResponseEntity.ok(productService.fullUpdateProduct(productId, request));
     }
 
     @PatchMapping("/{productId}")
     public ResponseEntity<ProductResponse> patchProduct(
             @PathVariable Long productId,
-            @Valid @RequestBody PatchProductRequest request) {
-        return ResponseEntity.ok(productService.patchProduct(productId, request));
+            @Valid @RequestBody UpdateProductRequest request) {
+        return ResponseEntity.ok(productService.updateProduct(productId, request));
     }
 
     @PostMapping

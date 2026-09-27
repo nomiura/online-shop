@@ -12,8 +12,8 @@ public interface ProductService {
     ProductResponse findById(Long productId);
     ProductResponse createProduct(CreateProductRequest request);
     void deleteProduct(Long productId);
-    ProductResponse patchProduct(Long productId, PatchProductRequest request);
-    ProductResponse fullUpdateProduct(Long productId, UpdateProductRequest request);
+    ProductResponse updateProduct(Long productId, UpdateProductRequest request);
+    ProductResponse fullUpdateProduct(Long productId, FullUpdateProductRequest request);
 
     @Transactional(readOnly = true)
     ProductResponse getProduct(Long productId);

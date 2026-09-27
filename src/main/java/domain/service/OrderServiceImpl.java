@@ -231,7 +231,7 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
 
         if (order.getOrderStatus() == OrderStatus.DELEVERED) {
-            orderMapper.toResponse(order);
+            return orderMapper.toResponse(order);
         }
 
         if (order.getOrderStatus() != OrderStatus.PAID) {

@@ -2,8 +2,8 @@ package domain.service;
 
 
 import domain.dto.request.CreateProductRequest;
-import domain.dto.request.PatchProductRequest;
 import domain.dto.request.UpdateProductRequest;
+import domain.dto.request.FullUpdateProductRequest;
 import domain.dto.response.ProductResponse;
 import domain.entity.Product;
 import domain.entity.ReviewStats;
@@ -14,6 +14,7 @@ import domain.repository.ProductRepository;
 import domain.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +32,7 @@ public class ProductServiceImpl implements ProductService {
     private final ReviewRepository reviewRepository;
 
 
-    @Cacheable(cacheNames = "products", key = "#p0")
+    @Cacheable(cacheNames = "products", key = "#productId")
     @Transactional(readOnly = true)
     @Override
     public ProductResponse findById(Long productId) {
@@ -53,7 +54,7 @@ public class ProductServiceImpl implements ProductService {
         return productMapper.toResponse(saved, ReviewStats.empty());
     }
 
-    @Transactional(readOnly = true)
+    @CacheEvict(cacheNames = "products", key = "#productId")
     @Override
     public void deleteProduct(Long productId) {
             if (!productRepository.existsById(productId)) {
@@ -63,9 +64,10 @@ public class ProductServiceImpl implements ProductService {
             log.info("Product deleted: id={}", productId);
         }
 
-    @Transactional
-    @Override
-    public ProductResponse fullUpdateProduct(Long productId, UpdateProductRequest request) {
+        @CacheEvict(cacheNames = "products", key = "#productId")
+        @Transactional
+        @Override
+        public ProductResponse fullUpdateProduct(Long productId, FullUpdateProductRequest request) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + productId));
 
@@ -86,9 +88,10 @@ public class ProductServiceImpl implements ProductService {
         return productMapper.toResponse(product, stats);
     }
 
+    @CacheEvict(cacheNames = "products", key = "##productId")
     @Transactional
     @Override
-    public ProductResponse patchProduct(Long productId, PatchProductRequest request) {
+    public ProductResponse updateProduct(Long productId, UpdateProductRequest request) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + productId));
 
