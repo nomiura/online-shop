@@ -6,20 +6,21 @@ import domain.dto.response.OrderResponse;
 import domain.entity.*;
 import domain.event.OrderCreatedEvent;
 import domain.event.OrderDeleveredEvent;
-import domain.event.ProductOutOfStockEvent;
 import domain.exception.*;
 import domain.mapper.OrderMapper;
+import domain.producer.OrderEventProducer;
 import domain.repository.AccountRepository;
 import domain.repository.OrderRepository;
+import domain.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import domain.producer.OrderEventProducer;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
@@ -29,8 +30,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
     private final AccountRepository accountRepository;
-
-    //для кафка
+    private final ProductRepository productRepository;
     private final OrderEventProducer eventProducer;
 
     @Transactional(readOnly = true)
@@ -39,6 +39,51 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
         return orderMapper.toResponse(order);
+    }
+
+    //Метод, который позволяет не дублировать код сборки заказа, а сразу строить общий Order для create и recreate
+    private Order buildOrder(Account account, List<OrderLine> orderLines) {
+        List<OrderLine> lines = orderLines.stream()
+                .sorted(Comparator.comparing(OrderLine::productId))
+                .toList();
+
+        Order order = new Order();
+
+        List<OrderItem> items = new ArrayList<>();
+
+        BigDecimal total = BigDecimal.ZERO;
+
+        for (OrderLine l : lines) {
+            Product product = productRepository.findById(l.productId())
+                    .orElseThrow(() -> new ProductNotFoundException("Товар не найден"));
+            int updated = productRepository.updateStock(product.getProductId(), l.quantity());
+            if (updated == 0) {
+                Integer qty = productRepository.getQuantityAvailableById(l.productId());
+                throw new InsufficientStockException("Недостаточно товара: " + product.getName()
+                        + ". Доступно: " + qty
+                        + ", запрошено: " + l.quantity());
+            }
+            BigDecimal effectivePrice = product.getEffectivePrice();
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProduct(product);
+            orderItem.setQuantity(l.quantity());
+            orderItem.setOriginalPrice(product.getCurrentPrice());
+            orderItem.setPriceAtPurchase(effectivePrice);
+            orderItem.setOrder(order);
+
+            log.debug("Order item: productId={}, qty={}, price={}",
+                    product.getProductId(), orderItem.getQuantity(), effectivePrice);
+
+            items.add(orderItem);
+
+            total = total.add(effectivePrice.multiply(BigDecimal.valueOf(l.quantity())));
+        }
+        order.setAccount(account);
+        order.setOrderStatus(OrderStatus.CREATED);
+        order.setItems(items);
+        order.setPrice(total);
+        return order;
+
     }
 
     @Transactional
@@ -53,6 +98,7 @@ public class OrderServiceImpl implements OrderService {
             log.warn("Order rejected: cart is empty, accountId={}", account.getId());
             throw new CartEmptyException("Cart is empty");
         }
+
         if (account.getAccountType() == AccountType.INDIVIDUAL) {
             for (CartItem item : cart.getItems()) {
                 if (item.getQuantity() > 10) {
@@ -63,47 +109,15 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
-        Order order = new Order();
-        order.setAccount(account);
-        order.setOrderStatus(OrderStatus.CREATED);
+        List<OrderLine> lines = account.getCart().getItems()
+                .stream()
+                .map(l -> new OrderLine(l.getProduct().getProductId(), l.getQuantity()))
+                .toList();
+
+        Order order = buildOrder(account, lines);
+
         order.setDescription(request.getComment());
 
-        List<OrderItem> orderItems = new ArrayList<>();
-        BigDecimal price = BigDecimal.ZERO;
-
-        for (CartItem item : cart.getItems()) {
-            Product product = item.getProduct();
-            if(product.getQuantityAvailable() < item.getQuantity()) {
-                throw new InsufficientStockException("Недостаточно товара: " + product.getName()
-                        + ". Доступно: " + product.getQuantityAvailable()
-                        + ", запрошено: " + item.getQuantity());
-            } else {
-                product.setQuantityAvailable(product.getQuantityAvailable() - item.getQuantity());
-            }
-            if (product.getQuantityAvailable() == 0) {
-                ProductOutOfStockEvent event = new ProductOutOfStockEvent(
-                        product.getProductId(),
-                        product.getName(),
-                        Instant.now(),
-                        item.getQuantity());
-                eventProducer.sendQuantityEvent(event);
-            }
-            BigDecimal effectivePrice = product.getEffectivePrice();
-
-            OrderItem orderItem = new OrderItem();
-            orderItem.setProduct(product);
-            orderItem.setQuantity(item.getQuantity());
-            orderItem.setOriginalPrice(product.getCurrentPrice());
-            orderItem.setPriceAtPurchase(effectivePrice);
-            orderItem.setOrder(order);
-            orderItems.add(orderItem);
-
-            price = price.add(effectivePrice.multiply(BigDecimal.valueOf(item.getQuantity())));
-            log.debug("Order item: productId={}, qty={}, price={}",
-                    product.getProductId(), item.getQuantity(), effectivePrice);
-        }
-        order.setPrice(price);
-        order.setItems(orderItems);
         orderRepository.save(order);
         log.info("Order is created with ID {}", order.getOrderId());
         cart.getItems().clear();
@@ -130,7 +144,6 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findByAccountId(accountId).stream()
                 .map(orderMapper::toResponse)
                 .toList();
-
     }
 
     @Transactional
@@ -159,6 +172,7 @@ public class OrderServiceImpl implements OrderService {
         order.setDescription(request.getDescription());
         log.info("Order's description has been updated with ID {}", order.getOrderId());
         return orderMapper.toResponse(order);
+
     }
 
     @Transactional
@@ -197,9 +211,15 @@ public class OrderServiceImpl implements OrderService {
         newOrder.setAccount(oldOrder.getAccount());
 
         List<OrderItem> newItems = new ArrayList<>();
+
+        List<OrderItem> newSortedItems = oldOrder.getItems().stream()
+                .sorted(Comparator.comparing(item -> item.getProduct().getProductId()))
+                .toList();
+
         BigDecimal price = BigDecimal.ZERO;
-
-
+        for (OrderItem oldItem : newSortedItems) {
+            Product product =
+        }
         for (OrderItem oldItem : oldOrder.getItems()) {
             Product product = oldItem.getProduct();
             BigDecimal effectivePrice = product.getEffectivePrice();
@@ -213,15 +233,15 @@ public class OrderServiceImpl implements OrderService {
             newItems.add(newItem);
 
             price = price.add(effectivePrice.multiply(BigDecimal.valueOf(oldItem.getQuantity())));
+
+            newOrder.setItems(newItems);
+            newOrder.setPrice(price);
+
+            orderRepository.save(newOrder);
+            log.info("Order {} recreated as new order {}", orderId, newOrder.getOrderId());
+
+            return orderMapper.toResponse(newOrder);
         }
-
-        newOrder.setItems(newItems);
-        newOrder.setPrice(price);
-
-        orderRepository.save(newOrder);
-        log.info("Order {} recreated as new order {}", orderId, newOrder.getOrderId());
-
-        return orderMapper.toResponse(newOrder);
     }
 
     @Transactional
@@ -243,9 +263,9 @@ public class OrderServiceImpl implements OrderService {
 
         OrderDeleveredEvent event = new OrderDeleveredEvent
                 (order.getOrderId(),
-                order.getAccount().getPhone(),
-                order.getDeleveredAt()
-        );
+                        order.getAccount().getPhone(),
+                        order.getDeleveredAt()
+                );
         eventProducer.sendOrderDeliveredEvent(event);
         return orderMapper.toResponse(order);
     }
