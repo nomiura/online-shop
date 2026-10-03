@@ -37,8 +37,14 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
+
     private Instant createdAt; //нужна дата создания заказа, часто в проде используют именно Instant.class,
     //тк он привязан к UTC и отображает часовой пояс и нет путаницы с городами, а LocalDateTime - нет
+
+    @PrePersist
+    public void onCreate() {
+        createdAt = Instant.now();
+    }
 
     private Instant deleveredAt;
 }

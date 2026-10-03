@@ -6,6 +6,7 @@ import domain.dto.response.OrderResponse;
 import domain.entity.*;
 import domain.event.OrderCreatedEvent;
 import domain.event.OrderDeleveredEvent;
+import domain.event.ProductOutOfStockEvent;
 import domain.exception.*;
 import domain.mapper.OrderMapper;
 import domain.producer.OrderEventProducer;
@@ -14,6 +15,7 @@ import domain.repository.OrderRepository;
 import domain.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +33,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     private final AccountRepository accountRepository;
     private final ProductRepository productRepository;
-    private final OrderEventProducer eventProducer;
+    private final ApplicationEventPublisher publisher;
 
     @Transactional(readOnly = true)
     @Override
@@ -62,6 +64,14 @@ public class OrderServiceImpl implements OrderService {
                 throw new InsufficientStockException("Недостаточно товара: " + product.getName()
                         + ". Доступно: " + qty
                         + ", запрошено: " + l.quantity());
+            }
+            if(productRepository.getQuantityAvailableById(l.productId()) == 0) {
+                publisher.publishEvent( new ProductOutOfStockEvent(product.getProductId(),
+                        product.getName(),
+                        Instant.now(),
+                        l.quantity()
+                        ));
+
             }
             BigDecimal effectivePrice = product.getEffectivePrice();
             OrderItem orderItem = new OrderItem();
@@ -131,7 +141,7 @@ public class OrderServiceImpl implements OrderService {
                 order.getAccount().getPhone(),
                 order.getCreatedAt()
         );
-        eventProducer.sendOrderCreatedEvent(event); //асинхронно!
+        publisher.publishEvent(event);
 
         //возвращаем ответ клиенту (не ждем отправку email!)
         return orderMapper.toResponse(order);
@@ -193,56 +203,31 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
-        for (OrderItem item : oldOrder.getItems()) {
-            Product product = item.getProduct();
-            Integer available = product.getQuantityAvailable();
-            if (available == null || available < item.getQuantity()) {
-                log.warn("Recreate rejected: insufficient stock, orderId={}, productId={}, requested={}, available={}",
-                        orderId, product.getProductId(), item.getQuantity(), available);
-                throw new InsufficientStockException(
-                        "Insufficient stock for product: " + product.getName()
-                                + ". Requested: " + item.getQuantity() + ", available: " + available);
-            }
-        }
-        // повторить можно заказ в любом статусе — осознанно без проверки
-
-        Order newOrder = new Order();
-        newOrder.setOrderStatus(OrderStatus.CREATED);
-        newOrder.setAccount(oldOrder.getAccount());
-
-        List<OrderItem> newItems = new ArrayList<>();
-
-        List<OrderItem> newSortedItems = oldOrder.getItems().stream()
-                .sorted(Comparator.comparing(item -> item.getProduct().getProductId()))
+        List<OrderLine> lines = oldOrder.getItems()
+                .stream()
+                .map(i -> new OrderLine(i.getProduct().getProductId(), i.getQuantity()))
                 .toList();
 
-        BigDecimal price = BigDecimal.ZERO;
-        for (OrderItem oldItem : newSortedItems) {
-            Product product =
-        }
-        for (OrderItem oldItem : oldOrder.getItems()) {
-            Product product = oldItem.getProduct();
-            BigDecimal effectivePrice = product.getEffectivePrice();
+        // повторить можно заказ в любом статусе — осознанно без проверки
+        Order newOrder = buildOrder(account, lines);
 
-            OrderItem newItem = new OrderItem();
-            newItem.setProduct(product);
-            newItem.setQuantity(oldItem.getQuantity());
-            newItem.setOriginalPrice(product.getCurrentPrice());
-            newItem.setPriceAtPurchase(effectivePrice);
-            newItem.setOrder(newOrder);
-            newItems.add(newItem);
+        orderRepository.save(newOrder);
+        log.info("Order {} recreated as new order {}", orderId, newOrder.getOrderId());
 
-            price = price.add(effectivePrice.multiply(BigDecimal.valueOf(oldItem.getQuantity())));
+        //отправляем сообщение в кафка (не блокирует)
+        OrderCreatedEvent event = new OrderCreatedEvent(
+                newOrder.getOrderId(),
+                newOrder.getAccount().getId(),
+                newOrder.getPrice(),
+                newOrder.getAccount().getEmail(),
+                newOrder.getAccount().getPhone(),
+                newOrder.getCreatedAt()
+        );
+        publisher.publishEvent(event);
 
-            newOrder.setItems(newItems);
-            newOrder.setPrice(price);
-
-            orderRepository.save(newOrder);
-            log.info("Order {} recreated as new order {}", orderId, newOrder.getOrderId());
-
-            return orderMapper.toResponse(newOrder);
-        }
+        return orderMapper.toResponse(newOrder);
     }
+
 
     @Transactional
     @Override
@@ -266,7 +251,7 @@ public class OrderServiceImpl implements OrderService {
                         order.getAccount().getPhone(),
                         order.getDeleveredAt()
                 );
-        eventProducer.sendOrderDeliveredEvent(event);
+        publisher.publishEvent(event);
         return orderMapper.toResponse(order);
     }
 }
