@@ -19,7 +19,7 @@ public class OrderEventProducer {
     private static final String OUT_OF_STOCK_TOPIC = "product-out-of-stock";
 
     public void sendOrderDeliveredEvent(OrderDeleveredEvent event) {
-        log.info("Отправляем сообщение о доставке в Kafka: заказ{}", event.getOrderId());
+        log.info("Отправляем сообщение о доставке в Kafka: заказ {}", event.getOrderId());
 
         kafkaTemplate.send(DELEVERED_TOPIC, String.valueOf(event.getOrderId()), event);
 
@@ -35,7 +35,7 @@ public class OrderEventProducer {
         //topic, Key: orderId, Value: OrderCreatedEvent (JSON)
         kafkaTemplate.send(CREATED_TOPIC, String.valueOf(event.getOrderId()), event);
 
-        log.info("Сообщение отправлено");
+        log.info("Сообщение о создании заказа отправлено");
     }
 
     public void sendQuantityEvent(ProductOutOfStockEvent event) {

@@ -26,6 +26,7 @@ public class Product {
 
     private String description;
 
+    //Цена без скидки
     @Column(precision = 12, scale = 2)
     private BigDecimal currentPrice;
 
@@ -38,12 +39,14 @@ public class Product {
     @Column(name = "quantity_available")
     private Integer quantityAvailable;
 
+    //Закупочная цена
     @Column(name = "cost_price", precision = 12, scale = 2)
     private BigDecimal costPrice;
 
     @Column(name = "supplier")
     private String supplier;
 
+    //Высчитываем скидку
     public BigDecimal getEffectivePrice() {
         if (discountPercent == null || discountPercent == 0) {
             return currentPrice;
