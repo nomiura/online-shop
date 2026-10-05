@@ -14,7 +14,6 @@ import domain.exception.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @Slf4j
@@ -82,7 +81,8 @@ public class CartServiceImpl implements CartService {
             cartItem.setCart(cart);
             cartItem.setProduct(product);
             cartItem.setQuantity(quantity);
-            cartItem.setPriceAddition(product.getCurrentPrice());
+            cartItem.setOriginalPrice(product.getCurrentPrice());
+            cartItem.setPriceAddition(product.getEffectivePrice());
 
             cart.getItems().add(cartItem);
         }
